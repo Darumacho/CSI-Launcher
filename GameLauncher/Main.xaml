@@ -1,0 +1,21 @@
+﻿<Window x:Class="GameLauncher.Main"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GameLauncher"
+        mc:Ignorable="d"
+        Title="CSI Launcher" Height="680" Width="1024" Background="#545ba8" ResizeMode="NoResize">
+    <Grid>
+        <Button HorizontalAlignment="Center" Height="264" Click="ButtonClicked_2" Margin="0,217,0,0" VerticalAlignment="Top" Width="301" Background="#FF1D1E1E">
+            <Image Source="images/CSII_Button.png" Stretch="Fill"/>
+        </Button>
+        <Button HorizontalAlignment="Left" Height="264" Click="ButtonClicked_1" Margin="10,217,0,0" VerticalAlignment="Top" Width="301" Background="#FFFFFF">
+            <Image Source="images/CSI_Button.png" Stretch="Fill"/>
+        </Button>
+        <Button HorizontalAlignment="Left" Height="264" Click="ButtonClicked_R" Margin="695,217,0,0" VerticalAlignment="Top" Width="301" Background="Black">
+            <Image Source="images/CSR_Button.png" Stretch="Fill"/>
+        </Button>
+
+    </Grid>
+</Window>

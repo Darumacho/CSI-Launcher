@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>images\Icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="images\Background.png" />
+    <None Remove="images\CSII_Button.png" />
+    <None Remove="images\CSI_Button.png" />
+    <None Remove="images\CSI_Title.png" />
+    <None Remove="images\CSR_Button.png" />
+    <None Remove="images\CSR_Title.png" />
+    <None Remove="images\Icon.ico" />
+    <None Remove="sound\Startup.wav" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="images\Background.png" />
+    <Resource Include="images\CSII_Button.png" />
+    <Resource Include="images\CSI_Button.png" />
+    <Resource Include="images\CSI_Title.png" />
+    <Resource Include="images\CSR_Button.png" />
+    <Resource Include="images\CSR_Title.png" />
+    <Resource Include="images\Icon.ico" />
+    <Resource Include="sound\Startup.wav" />
+  </ItemGroup>
+
+</Project>

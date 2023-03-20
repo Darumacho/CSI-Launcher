@@ -1,0 +1,19 @@
+﻿<Window x:Class="GameLauncher.CSIWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GameLauncher"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
+        ContentRendered="Window_ContentRendered"
+        Title="CSI Forever" Height="680" Width="1024">
+    <Grid>
+        <Image Stretch="UniformToFill" Source="/images/CSI_Title.png" Margin="-232,-41,183,-314" />
+        <!--<MediaElement Source="/images/013_1000.gif" LoadedBehavior="Play" Visibility="Visible" />-->
+        <TextBlock Name="VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontSize="20" FontFamily="Optimus"  Foreground="White" Margin="0, 0, 5, 0"/>
+        <!--<TextBlock Text="Nouveautés :" FontSize="30" FontFamily="Optimus" FontStyle="Italic" Background="White" Foreground="Gray" Margin="40,116,756,161"/>-->
+        <Button Name="PlayButton" Content="Vérification du contenu..." Click="PlayButton_Click" Height="60" FontSize="28" FontFamily="Optimus" Foreground="#DDFFFFFF" VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="150" Background="#545ba8" Padding="10,1,10,1" Width="460" Margin="321,538,0,0"/>
+        <Button x:Name="BackToMenu" Content="Retour" Click="Return_Click" Height="60" FontSize="28" FontFamily="Optimus" Foreground="#DDFFFFFF" VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="150" Background="#545ba8" Padding="10,1,10,1" Width="70" Margin="10,590,0,0"/>
+    </Grid>
+</Window>
