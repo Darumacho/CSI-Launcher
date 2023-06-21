@@ -26,7 +26,9 @@
     <Resource Include="images\CSR_Button.png" />
     <Resource Include="images\CSR_Title.png" />
     <Resource Include="images\Icon.ico" />
-    <Resource Include="sound\Startup.wav" />
+    <Resource Include="sound\Startup.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>

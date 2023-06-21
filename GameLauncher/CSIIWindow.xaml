@@ -7,13 +7,13 @@
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         ContentRendered="Window_ContentRendered"
-        Title="CSII Forever" Height="680" Width="1024" Background="#FF1D1E1E">
+        Title="CSII Forever" Height="680" Width="1024" Background="#FF1D1E1E" ResizeMode="NoResize">
     <Grid>
         <Image Stretch="UniformToFill" Source="/images/Background.png" Margin="10,0,-10,0" />
         <!--<MediaElement Source="/images/013_1000.gif" LoadedBehavior="Play" Visibility="Visible" />-->
         <TextBlock Name="VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontSize="20" FontFamily="Optimus"  Foreground="White" Margin="0, 0, 5, 0"/>
         <!--<TextBlock Text="Nouveautés :" FontSize="30" FontFamily="Optimus" FontStyle="Italic" Background="White" Foreground="Gray" Margin="40,116,756,161"/>-->
-        <Button Name="PlayButton" Content="Vérification du contenu..." Click="PlayButton_Click" Height="60" FontSize="28" FontFamily="Optimus" Foreground="#DDFFFFFF" VerticalAlignment="Top" HorizontalAlignment="Center" MinWidth="150" Background="#545ba8" Padding="10,1,10,1" Width="460" Margin="0,544,0,0"/>
-        <Button x:Name="BackToMenu" Content="Retour" Click="Return_Click" Height="60" FontSize="28" FontFamily="Optimus" Foreground="#DDFFFFFF" VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="150" Background="#545ba8" Padding="10,1,10,1" Width="70" Margin="10,590,0,0"/>
+        <Button Name="PlayButton" Content="Vérification du contenu..." Click="PlayButton_Click" Height="60" FontSize="28" FontFamily="Optimus" Foreground="#DDFFFFFF" VerticalAlignment="Top" HorizontalAlignment="Center" MinWidth="150" Background="#545ba8" Padding="10,1,10,1" Width="460" Margin="0,496,0,0"/>
+        <Button x:Name="BackToMenu" Content="Retour" Click="Return_Click" Height="60" FontSize="28" FontFamily="Optimus" Foreground="#DDFFFFFF" VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="150" Background="#545ba8" Padding="10,1,10,1" Width="70" Margin="10,574,0,0"/>
     </Grid>
 </Window>

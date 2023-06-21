@@ -7,17 +7,17 @@
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         ContentRendered="Window_ContentRendered"
-        Title="CSI Rogue" Height="680" Width="1024" Background="Black">
+        Title="CSI Rogue" Height="680" Width="1024" Background="Black" ResizeMode="NoResize">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="609*"/>
             <ColumnDefinition Width="415*"/>
         </Grid.ColumnDefinitions>
-        <Image Stretch="UniformToFill" Source="/images/CSR_Title.png" Margin="-131,0,-160,-150" Grid.ColumnSpan="2" />
+        <Image Stretch="UniformToFill" Source="/images/CSR_Title.png" Margin="-131,-55,-160,-95" Grid.ColumnSpan="2" />
         <!--<MediaElement Source="/images/013_1000.gif" LoadedBehavior="Play" Visibility="Visible" />-->
         <TextBlock Name="VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right" FontSize="20" FontFamily="Optimus"  Foreground="White" Margin="0, 0, 5, 0" Grid.Column="1"/>
         <!--<TextBlock Text="Nouveautés :" FontSize="30" FontFamily="Optimus" FontStyle="Italic" Background="White" Foreground="Gray" Margin="40,116,756,161"/>-->
-        <Button Name="PlayButton" Content="Vérification du contenu..." Click="PlayButton_Click" Height="60" FontSize="28" FontFamily="Optimus" Foreground="#DDFFFFFF" VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="150" Background="#545ba8" Padding="10,1,10,1" Width="460" Margin="282,544,0,0" Grid.ColumnSpan="2"/>
-        <Button x:Name="BackToMenu" Content="Retour" Click="Return_Click" Height="60" FontSize="28" FontFamily="Optimus" Foreground="#DDFFFFFF" VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="150" Background="#545ba8" Padding="10,1,10,1" Width="70" Margin="10,590,0,0"/>
+        <Button Name="PlayButton" Content="Vérification du contenu..." Click="PlayButton_Click" Height="60" FontSize="28" FontFamily="Optimus" Foreground="#DDFFFFFF" VerticalAlignment="Top" HorizontalAlignment="Center" MinWidth="150" Background="#545ba8" Padding="10,1,10,1" Width="460" Margin="0,496,0,0" Grid.ColumnSpan="2"/>
+        <Button x:Name="BackToMenu" Content="Retour" Click="Return_Click" Height="60" FontSize="28" FontFamily="Optimus" Foreground="#DDFFFFFF" VerticalAlignment="Top" HorizontalAlignment="Left" MinWidth="150" Background="#545ba8" Padding="10,1,10,1" Width="70" Margin="10,574,0,0"/>
     </Grid>
 </Window>
