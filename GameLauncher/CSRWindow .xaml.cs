@@ -64,7 +64,7 @@ namespace GameLauncher
                 System.IO.Directory.CreateDirectory(rootPath);
             versionFile = Path.Combine(rootPath, "Version.txt");
             gameZip = Path.Combine(rootPath, "Build.zip");
-            gameExe = Path.Combine(rootPath, "Build", "Game.exe");
+            gameExe = Path.Combine(rootPath, "Game.exe");
         }
 
         private void CheckForUpdates()
@@ -113,13 +113,13 @@ namespace GameLauncher
                 else
                 {
                     Status = LauncherStatus.downloadingGame;
-                    _onlineVersion = new VersionR(webClient.DownloadString("https://www.dropbox.com/s/udosqsch0c03lew/Version.txt?dl=1"));
+                    _onlineVersion = new VersionR(webClient.DownloadString("https://www.dropbox.com/s/9k566zu9r1doxtt/Version.txt?dl=1"));
                 }
 
                 //URL Version
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadGameCompletedCallback);
                 //URL Zip
-                webClient.DownloadFileAsync(new Uri("https://www.dropbox.com/s/sdw7vddvdwkvlx0/Build.zip?dl=1"), gameZip, _onlineVersion);
+                webClient.DownloadFileAsync(new Uri("https://www.dropbox.com/s/6gzo9x64gi5c0dw/Build.zip?dl=1"), gameZip, _onlineVersion);
             }
             catch (Exception ex)
             {
@@ -158,7 +158,7 @@ namespace GameLauncher
             if (File.Exists(gameExe) && Status == LauncherStatus.ready)
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo(gameExe);
-                startInfo.WorkingDirectory = Path.Combine(rootPath, "Build");
+                startInfo.WorkingDirectory = Path.Combine(rootPath);
                 Process.Start(startInfo);
 
                 Close();

@@ -64,7 +64,7 @@ namespace GameLauncher
                 System.IO.Directory.CreateDirectory(rootPath);
             versionFile = Path.Combine(rootPath, "Version.txt");
             gameZip = Path.Combine(rootPath, "Build.zip");
-            gameExe = Path.Combine(rootPath, "Build", "Game.exe");
+            gameExe = Path.Combine(rootPath, "Game.exe");
         }
 
         private void CheckForUpdates()
@@ -158,7 +158,7 @@ namespace GameLauncher
             if (File.Exists(gameExe) && Status == LauncherStatus.ready)
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo(gameExe);
-                startInfo.WorkingDirectory = Path.Combine(rootPath, "Build");
+                startInfo.WorkingDirectory = Path.Combine(rootPath);
                 Process.Start(startInfo);
 
                 Close();
