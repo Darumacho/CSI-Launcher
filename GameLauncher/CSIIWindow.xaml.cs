@@ -121,8 +121,8 @@ namespace GameLauncher
                     long receivedMB = pe.BytesReceived / (1024 * 1024);
                     long totalMB = pe.TotalBytesToReceive / (1024 * 1024);
                     Dispatcher.Invoke(() => PlayButton.Content = totalMB > 0
-                        ? $"Téléchargement... {receivedMB} sur {totalMB}Mo"
-                        : $"Téléchargement... {receivedMB}Mo");
+                        ? $"Téléchargement - {receivedMB} sur {totalMB}Mo"
+                        : $"Téléchargement - {receivedMB}Mo");
                 };
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadGameCompletedCallback);
                 webClient.DownloadFileAsync(new Uri("https://www.dropbox.com/s/sdw7vddvdwkvlx0/Build.zip?dl=1"), gameZip, _onlineVersion);

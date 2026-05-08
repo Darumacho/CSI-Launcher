@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="fonts\eurcntrc.ttf" />
+    <None Remove="fonts\PixelOperator.otf" />
+    <None Remove="images\Narval_Button.png" />
+    <None Remove="images\Narval_Title.png" />
     <None Remove="images\Team_CSI_logo_transparent.png" />
     <None Remove="images\Background.png" />
     <None Remove="images\CSII_Button.png" />
@@ -21,6 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="fonts\eurcntrc.ttf" />
+    <Resource Include="fonts\PixelOperator.ttf" />
+    <Resource Include="images\Narval_Button.png" />
+    <Resource Include="images\Narval_Title.png" />
     <Resource Include="images\Team_CSI_logo_transparent.png" />
     <Resource Include="images\Background.png" />
     <Resource Include="images\CSII_Button.png" />

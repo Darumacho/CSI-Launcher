@@ -46,6 +46,13 @@ namespace GameLauncher
             this.Close();
         }
 
+        private void ButtonClicked_Narval(object sender, RoutedEventArgs e)
+        {
+            NarvalWindow narval = new NarvalWindow();
+            narval.Show();
+            this.Close();
+        }
+
         private void Window_ContentRendered(object sender, EventArgs e)
         {
             InstallPathBox.Text = AppSettings.InstallPath;

@@ -10,5 +10,8 @@ namespace GameLauncher
 
         public const string CSIRogueDescription =
             "Percez les mystères de la labyrinthique Impasse Protéenne !\nChaque partie est unique : survivez, ramassez, recommencez.";
+
+        public const string NarvalDescription =
+            "Voyagez à travers le royaume de Narvalie pour rétablir l'ordre et repousser la peste démoniaque.";
     }
 }
