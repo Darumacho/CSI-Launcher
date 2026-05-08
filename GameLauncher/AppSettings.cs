@@ -8,6 +8,9 @@ namespace GameLauncher
         private static readonly string SettingsFile =
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.txt");
 
+        private static readonly string AutoUpdateFile =
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "autoupdate.txt");
+
         public static string InstallPath
         {
             get
@@ -21,6 +24,17 @@ namespace GameLauncher
                 return AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
             }
             set => File.WriteAllText(SettingsFile, value.TrimEnd('\\', '/'));
+        }
+
+        public static bool AutoUpdate
+        {
+            get
+            {
+                if (File.Exists(AutoUpdateFile))
+                    return File.ReadAllText(AutoUpdateFile).Trim() != "false";
+                return true;
+            }
+            set => File.WriteAllText(AutoUpdateFile, value ? "true" : "false");
         }
     }
 }

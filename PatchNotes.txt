@@ -1,5 +1,7 @@
 08.05.2026
 
+- Les mises à jour automatiques du launcher sont maintenant actives !
+
 - La dernière version de Narval Souls est désormais disponible depuis le launcher !
 - La nouvelle encyclopédie officielle CSI World sera bientôt mise en ligne !
 - Les développements de CSII Forever et CSI Rogue sont mis en pause le temps de terminer le nouveau site

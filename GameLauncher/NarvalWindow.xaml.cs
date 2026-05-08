@@ -133,7 +133,10 @@ namespace GameLauncher
 
         private void Window_ContentRendered(object sender, EventArgs e)
         {
-            CheckForUpdates();
+            if (!File.Exists(gameExe) || AppSettings.AutoUpdate)
+                CheckForUpdates();
+            else
+                Status = LauncherStatus.ready;
             LoadPatchNotes();
         }
 
