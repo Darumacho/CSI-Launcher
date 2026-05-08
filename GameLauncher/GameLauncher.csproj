@@ -4,10 +4,12 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>images\Icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="images\Team_CSI_logo_transparent.png" />
     <None Remove="images\Background.png" />
     <None Remove="images\CSII_Button.png" />
     <None Remove="images\CSI_Button.png" />
@@ -19,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="images\Team_CSI_logo_transparent.png" />
     <Resource Include="images\Background.png" />
     <Resource Include="images\CSII_Button.png" />
     <Resource Include="images\CSI_Button.png" />

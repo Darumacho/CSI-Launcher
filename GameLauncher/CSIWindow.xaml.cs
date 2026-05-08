@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace GameLauncher
@@ -57,14 +58,13 @@ namespace GameLauncher
         {
             InitializeComponent();
 
-            rootPath = Directory.GetCurrentDirectory();
-            rootPath += "/CSI Forever";
+            rootPath = Path.Combine(AppSettings.InstallPath, "CSI Forever");
             bool exists = System.IO.Directory.Exists(rootPath);
             if (!exists)
                 System.IO.Directory.CreateDirectory(rootPath);
             versionFile = Path.Combine(rootPath, "Version.txt");
             gameZip = Path.Combine(rootPath, "Build.zip");
-            gameExe = Path.Combine(rootPath, "Game.exe");
+            gameExe = Path.Combine(rootPath, "CSIForever/Game.exe");
         }
 
         private void CheckForUpdates()
@@ -78,7 +78,7 @@ namespace GameLauncher
                 {
                     WebClient webClient = new WebClient();
                     //URL Version
-                    CSI_Version onlineVersion = new CSI_Version(webClient.DownloadString("https://www.dropbox.com/s/ecljhecwi8hg1j5/Version.txt?dl=1"));
+                    CSI_Version onlineVersion = new CSI_Version(webClient.DownloadString("https://github.com/Darumacho/CSI-Forever/releases/download/release/Version.txt"));
 
                     if (onlineVersion.IsDifferentThan(localVersion))
                     {
@@ -113,13 +113,20 @@ namespace GameLauncher
                 else
                 {
                     Status = LauncherStatus.downloadingGame;
-                    _onlineVersion = new CSI_Version(webClient.DownloadString("https://www.dropbox.com/s/ecljhecwi8hg1j5/Version.txt?dl=1"));
+                    _onlineVersion = new CSI_Version(webClient.DownloadString("https://github.com/Darumacho/CSI-Forever/releases/download/release/Version.txt"));
                 }
 
                 //URL Version
+                webClient.DownloadProgressChanged += (s, pe) =>
+                {
+                    long receivedMB = pe.BytesReceived / (1024 * 1024);
+                    long totalMB = pe.TotalBytesToReceive / (1024 * 1024);
+                    Dispatcher.Invoke(() => PlayButton.Content = totalMB > 0
+                        ? $"Téléchargement... {receivedMB} sur {totalMB}Mo"
+                        : $"Téléchargement... {receivedMB}Mo");
+                };
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadGameCompletedCallback);
-                //URL Zip
-                webClient.DownloadFileAsync(new Uri("https://www.dropbox.com/s/q0qf8y57yf61v7t/Build.zip?dl=1"), gameZip, _onlineVersion);
+                webClient.DownloadFileAsync(new Uri("https://github.com/Darumacho/CSI-Forever/releases/download/release/CSI.Forever.zip"), gameZip, _onlineVersion);
             }
             catch (Exception ex)
             {
@@ -128,16 +135,18 @@ namespace GameLauncher
             }
         }
 
-        private void DownloadGameCompletedCallback(object sender, AsyncCompletedEventArgs e)
+        private async void DownloadGameCompletedCallback(object sender, AsyncCompletedEventArgs e)
         {
             try
             {
                 string onlineVersion = ((CSI_Version)e.UserState).ToString();
-                ZipFile.ExtractToDirectory(gameZip, rootPath, true);
-                File.Delete(gameZip);
-
-                File.WriteAllText(versionFile, onlineVersion);
-
+                PlayButton.Content = "Installation...";
+                await Task.Run(() =>
+                {
+                    ZipFile.ExtractToDirectory(gameZip, rootPath, true);
+                    File.Delete(gameZip);
+                    File.WriteAllText(versionFile, onlineVersion);
+                });
                 VersionText.Text = onlineVersion;
                 Status = LauncherStatus.ready;
             }
@@ -151,21 +160,40 @@ namespace GameLauncher
         private void Window_ContentRendered(object sender, EventArgs e)
         {
             CheckForUpdates();
+            LoadPatchNotes();
+        }
+
+        private void LoadPatchNotes()
+        {
+            try
+            {
+                WebClient webClient = new WebClient();
+                PatchNotesText.Text = webClient.DownloadString("https://github.com/Darumacho/CSI-Forever/releases/download/release/PatchNotes.txt");
+            }
+            catch
+            {
+                PatchNotesText.Text = "Notes de mise à jour indisponibles.";
+            }
         }
 
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
             if (File.Exists(gameExe) && Status == LauncherStatus.ready)
             {
-                ProcessStartInfo startInfo = new ProcessStartInfo(gameExe);
-                startInfo.WorkingDirectory = Path.Combine(rootPath);
-                Process.Start(startInfo);
-
+                Process.Start(new ProcessStartInfo(gameExe) { WorkingDirectory = rootPath });
                 Close();
             }
             else if (Status == LauncherStatus.failed)
             {
-                CheckForUpdates();
+                if (File.Exists(gameExe))
+                {
+                    Process.Start(new ProcessStartInfo(gameExe) { WorkingDirectory = rootPath });
+                    Close();
+                }
+                else
+                {
+                    CheckForUpdates();
+                }
             }
         }
 

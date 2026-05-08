@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace GameLauncher
@@ -57,8 +58,7 @@ namespace GameLauncher
         {
             InitializeComponent();
 
-            rootPath = Directory.GetCurrentDirectory();
-            rootPath += "/CSI Rogue";
+            rootPath = Path.Combine(AppSettings.InstallPath, "CSI Rogue");
             bool exists = System.IO.Directory.Exists(rootPath);
             if (!exists)
                 System.IO.Directory.CreateDirectory(rootPath);
@@ -116,9 +116,15 @@ namespace GameLauncher
                     _onlineVersion = new VersionR(webClient.DownloadString("https://www.dropbox.com/s/9k566zu9r1doxtt/Version.txt?dl=1"));
                 }
 
-                //URL Version
+                webClient.DownloadProgressChanged += (s, pe) =>
+                {
+                    long receivedMB = pe.BytesReceived / (1024 * 1024);
+                    long totalMB = pe.TotalBytesToReceive / (1024 * 1024);
+                    Dispatcher.Invoke(() => PlayButton.Content = totalMB > 0
+                        ? $"Téléchargement... {receivedMB} sur {totalMB}Mo"
+                        : $"Téléchargement... {receivedMB}Mo");
+                };
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadGameCompletedCallback);
-                //URL Zip
                 webClient.DownloadFileAsync(new Uri("https://www.dropbox.com/s/6gzo9x64gi5c0dw/Build.zip?dl=1"), gameZip, _onlineVersion);
             }
             catch (Exception ex)
@@ -128,16 +134,18 @@ namespace GameLauncher
             }
         }
 
-        private void DownloadGameCompletedCallback(object sender, AsyncCompletedEventArgs e)
+        private async void DownloadGameCompletedCallback(object sender, AsyncCompletedEventArgs e)
         {
             try
             {
                 string onlineVersion = ((VersionR)e.UserState).ToString();
-                ZipFile.ExtractToDirectory(gameZip, rootPath, true);
-                File.Delete(gameZip);
-
-                File.WriteAllText(versionFile, onlineVersion);
-
+                PlayButton.Content = "Installation...";
+                await Task.Run(() =>
+                {
+                    ZipFile.ExtractToDirectory(gameZip, rootPath, true);
+                    File.Delete(gameZip);
+                    File.WriteAllText(versionFile, onlineVersion);
+                });
                 VersionText.Text = onlineVersion;
                 Status = LauncherStatus.ready;
             }
@@ -151,6 +159,20 @@ namespace GameLauncher
         private void Window_ContentRendered(object sender, EventArgs e)
         {
             CheckForUpdates();
+            LoadPatchNotes();
+        }
+
+        private void LoadPatchNotes()
+        {
+            try
+            {
+                WebClient webClient = new WebClient();
+                PatchNotesText.Text = webClient.DownloadString("https://github.com/Darumacho/CSI-Rogue/releases/download/release/PatchNotes.txt");
+            }
+            catch
+            {
+                PatchNotesText.Text = "Notes de mise à jour indisponibles.";
+            }
         }
 
         private void PlayButton_Click(object sender, RoutedEventArgs e)
