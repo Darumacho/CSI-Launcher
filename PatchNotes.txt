@@ -1,6 +1,8 @@
-08.05.2026
+10.05.2026
 
-- Les mises à jour automatiques du launcher sont maintenant actives !
+Launcher - version 1.3 :
+	- Les mises à jour automatiques du launcher sont maintenant actives !
+	- Le thème du launcher peut désormais être choisi dans les paramètres
 
 - La dernière version de Narval Souls est désormais disponible depuis le launcher !
 - La nouvelle encyclopédie officielle CSI World sera bientôt mise en ligne !

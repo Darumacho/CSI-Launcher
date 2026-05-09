@@ -119,13 +119,35 @@
                     <Border Height="1" Background="#55FFFFFF" Margin="8,0,8,10"/>
                     <Button Content="⚙" Click="SettingsToggle_Click"
                             Width="32" Height="32" FontSize="16"
-                            Background="Transparent" Foreground="White" BorderBrush="Transparent" Padding="0"/>
+                            Background="Transparent" Foreground="White" BorderBrush="Transparent" Padding="0"
+                            ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Paramètres"/>
+                        </Button.ToolTip>
+                    </Button>
+                    <Button Content="✉" Click="ContactButton_Click"
+                            Width="32" Height="32" FontSize="18"
+                            Background="Transparent" Foreground="White" BorderBrush="Transparent" Padding="0" Margin="0,10,0,0"
+                            ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Contact"/>
+                        </Button.ToolTip>
+                    </Button>
+                    <Button Click="WebsiteButton_Click"
+                            Width="44" Height="44"
+                            Background="Transparent" BorderBrush="Transparent" Padding="2" Margin="0,10,0,0"
+                            ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Visiter CSI World"/>
+                        </Button.ToolTip>
+                        <Image Source="/images/WebsiteLogo.png" Stretch="Uniform"/>
+                    </Button>
                 </StackPanel>
             </DockPanel>
         </Border>
 
         <!-- Settings panel -->
-        <Border Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" Background="#F01a1a2e" ClipToBounds="True">
+        <Border x:Name="SettingsPanelBorder" Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" Background="#F01a1a2e" ClipToBounds="True" Visibility="Collapsed">
             <StackPanel Margin="15,15,15,0">
                 <TextBlock Text="Paramètres" FontFamily="/CSILauncher;component/fonts/#Eurocentric" FontSize="22" Foreground="White" Margin="0,0,0,20"/>
                 <TextBlock Text="Dossier d'installation :" FontFamily="/CSILauncher;component/fonts/#Eurocentric" FontSize="13" Foreground="#AAFFFFFF" Margin="0,0,0,6"/>
@@ -155,6 +177,35 @@
                 <Button Content="Enregistrer paramètres" Click="SaveSettings_Click"
                         Margin="0,16,0,0" Height="34" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                         FontSize="13" Background="#3a9e5f" Foreground="White" BorderBrush="Transparent"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Contact panel -->
+        <Border x:Name="ContactPanelBorder" Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" Background="#F01a1a2e" ClipToBounds="True" Visibility="Collapsed">
+            <StackPanel Margin="15,15,15,0">
+                <TextBlock Text="Contact" FontFamily="/CSILauncher;component/fonts/#Eurocentric" FontSize="22" Foreground="White" Margin="0,0,0,20"/>
+                <TextBlock Text="Votre adresse mail * :" FontFamily="/CSILauncher;component/fonts/#Eurocentric" FontSize="13" Foreground="#AAFFFFFF" Margin="0,0,0,6"/>
+                <TextBox x:Name="ContactEmailBox" FontSize="11" Padding="6"
+                         Background="#22FFFFFF" Foreground="White"
+                         BorderBrush="#545ba8" BorderThickness="1" CaretBrush="White"/>
+                <TextBlock Text="Votre nom :" FontFamily="/CSILauncher;component/fonts/#Eurocentric" FontSize="13" Foreground="#AAFFFFFF" Margin="0,10,0,6"/>
+                <TextBox x:Name="ContactNameBox" FontSize="11" Padding="6"
+                         Background="#22FFFFFF" Foreground="White"
+                         BorderBrush="#545ba8" BorderThickness="1" CaretBrush="White"/>
+                <TextBlock Text="Sujet :" FontFamily="/CSILauncher;component/fonts/#Eurocentric" FontSize="13" Foreground="#AAFFFFFF" Margin="0,10,0,6"/>
+                <TextBox x:Name="ContactSubjectBox" FontSize="11" Padding="6"
+                         Background="#22FFFFFF" Foreground="White"
+                         BorderBrush="#545ba8" BorderThickness="1" CaretBrush="White"/>
+                <TextBlock Text="Message :" FontFamily="/CSILauncher;component/fonts/#Eurocentric" FontSize="13" Foreground="#AAFFFFFF" Margin="0,10,0,6"/>
+                <TextBox x:Name="ContactMessageBox" FontSize="11" Padding="6" Height="110"
+                         TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
+                         Background="#22FFFFFF" Foreground="White"
+                         BorderBrush="#545ba8" BorderThickness="1" CaretBrush="White"/>
+                <Button x:Name="ContactSendButton" Content="Envoyer" Click="SendContact_Click"
+                        Margin="0,16,0,0" Height="34" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                        FontSize="13" Background="#545ba8" Foreground="White" BorderBrush="Transparent"/>
+                <TextBlock x:Name="ContactStatusText" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                           FontSize="12" TextWrapping="Wrap" Margin="0,10,0,0"/>
             </StackPanel>
         </Border>
 

@@ -360,3 +360,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /test installation/
 *.ink
+smtp.cfg

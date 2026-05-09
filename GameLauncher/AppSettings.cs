@@ -44,6 +44,24 @@ namespace GameLauncher
             set => File.WriteAllText(BackgroundFile, value);
         }
 
+        private static readonly string SmtpFile =
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "smtp.cfg");
+
+        public static string SmtpEmail => ReadSmtpConfig("email");
+        public static string SmtpPassword => ReadSmtpConfig("password");
+
+        private static string ReadSmtpConfig(string key)
+        {
+            if (!File.Exists(SmtpFile)) return null;
+            foreach (var line in File.ReadAllLines(SmtpFile))
+            {
+                var parts = line.Split(new[] { '=' }, 2);
+                if (parts.Length == 2 && parts[0].Trim() == key)
+                    return parts[1].Trim();
+            }
+            return null;
+        }
+
         public static bool AutoUpdate
         {
             get

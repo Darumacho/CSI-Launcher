@@ -16,6 +16,7 @@
     <None Remove="images\Narval_Title.png" />
     <None Remove="images\Team_CSI_logo_transparent.png" />
     <None Remove="images\AppLogo.png" />
+    <None Remove="images\WebsiteLogo.png" />
     <None Remove="images\BackgroundMain.png" />
     <None Remove="images\CSII_Title.png" />
     <None Remove="images\BackgroundSpace.png" />
@@ -28,7 +29,6 @@
     <None Remove="images\CSR_Button.png" />
     <None Remove="images\CSR_Title.png" />
     <None Remove="images\Icon.ico" />
-    <None Remove="sound\Startup.wav" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,6 +38,7 @@
     <Resource Include="images\Narval_Title.png" />
     <Resource Include="images\Team_CSI_logo_transparent.png" />
     <Resource Include="images\AppLogo.png" />
+    <Resource Include="images\WebsiteLogo.png" />
     <Resource Include="images\BackgroundMain.png" />
     <Resource Include="images\CSII_Title.png" />
     <Resource Include="images\BackgroundSpace.png" />
@@ -50,9 +51,12 @@
     <Resource Include="images\CSR_Button.png" />
     <Resource Include="images\CSR_Title.png" />
     <Resource Include="images\Icon.ico" />
-    <Resource Include="sound\Startup.wav">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="smtp.cfg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

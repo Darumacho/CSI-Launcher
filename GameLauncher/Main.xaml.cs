@@ -3,14 +3,13 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Media;
 using System.Net;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -177,9 +176,87 @@ namespace GameLauncher
 
         private void SettingsToggle_Click(object sender, RoutedEventArgs e)
         {
-            SettingsColumn.Width = SettingsColumn.Width.Value == 0
-                ? new GridLength(300)
-                : new GridLength(0);
+            bool isOpen = SettingsPanelBorder.Visibility == Visibility.Visible;
+            ContactPanelBorder.Visibility = Visibility.Collapsed;
+            SettingsPanelBorder.Visibility = isOpen ? Visibility.Collapsed : Visibility.Visible;
+            SettingsColumn.Width = isOpen ? new GridLength(0) : new GridLength(300);
+        }
+
+        private void ContactButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool isOpen = ContactPanelBorder.Visibility == Visibility.Visible;
+            SettingsPanelBorder.Visibility = Visibility.Collapsed;
+            ContactPanelBorder.Visibility = isOpen ? Visibility.Collapsed : Visibility.Visible;
+            SettingsColumn.Width = isOpen ? new GridLength(0) : new GridLength(300);
+        }
+
+        private async void SendContact_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(ContactEmailBox.Text))
+            {
+                ContactStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
+                ContactStatusText.Text = "L'adresse email est requise.";
+                return;
+            }
+
+            if (string.IsNullOrEmpty(AppSettings.SmtpEmail) || string.IsNullOrEmpty(AppSettings.SmtpPassword))
+            {
+                ContactStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
+                ContactStatusText.Text = "Service d'envoi non configuré (smtp.cfg introuvable).";
+                return;
+            }
+
+            ContactSendButton.IsEnabled = false;
+            ContactStatusText.Foreground = new SolidColorBrush(Colors.White);
+            ContactStatusText.Text = "Envoi en cours...";
+
+            try
+            {
+                string senderEmail = ContactEmailBox.Text.Trim();
+                string name = ContactNameBox.Text.Trim();
+                string subject = string.IsNullOrWhiteSpace(ContactSubjectBox.Text) ? "(sans sujet)" : ContactSubjectBox.Text.Trim();
+                string bodyText = string.IsNullOrWhiteSpace(name)
+                    ? $"De : {senderEmail}\n\n{ContactMessageBox.Text.Trim()}"
+                    : $"De : {name} ({senderEmail})\n\n{ContactMessageBox.Text.Trim()}";
+
+                var message = new MailMessage
+                {
+                    From = new MailAddress(AppSettings.SmtpEmail, "CSI Launcher"),
+                    Subject = subject,
+                    Body = bodyText
+                };
+                message.To.Add("darumacho@csi-world.xyz");
+                message.ReplyToList.Add(new MailAddress(senderEmail, name));
+
+                using var smtp = new SmtpClient("smtp.gmail.com", 587)
+                {
+                    EnableSsl = true,
+                    Credentials = new NetworkCredential(AppSettings.SmtpEmail, AppSettings.SmtpPassword)
+                };
+
+                await smtp.SendMailAsync(message);
+
+                ContactStatusText.Foreground = new SolidColorBrush(Color.FromRgb(0x3a, 0x9e, 0x5f));
+                ContactStatusText.Text = "Message envoyé ! \nMerci bien, guidoune !";
+                ContactEmailBox.Clear();
+                ContactNameBox.Clear();
+                ContactSubjectBox.Clear();
+                ContactMessageBox.Clear();
+            }
+            catch (Exception ex)
+            {
+                ContactStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
+                ContactStatusText.Text = $"Erreur : {ex.Message}";
+            }
+            finally
+            {
+                ContactSendButton.IsEnabled = true;
+            }
+        }
+
+        private void WebsiteButton_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo("http://csi-world.xyz") { UseShellExecute = true });
         }
 
         private void BrowseFolder_Click(object sender, RoutedEventArgs e)
@@ -201,6 +278,7 @@ namespace GameLauncher
                 AppSettings.Background = (string)selected.Tag;
                 ApplyBackground(AppSettings.Background);
             }
+            SettingsPanelBorder.Visibility = Visibility.Collapsed;
             SettingsColumn.Width = new GridLength(0);
         }
 
