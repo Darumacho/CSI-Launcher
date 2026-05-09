@@ -36,14 +36,12 @@ namespace GameLauncher
         private void ButtonClicked_1(object sender, RoutedEventArgs e)
         {
             CSIWindow csi1 = new CSIWindow();
-            //this.SoundClick();
             csi1.Show();
             this.Close();
         }
         private void ButtonClicked_2(object sender, RoutedEventArgs e)
         {
             CSIIWindow csi2 = new CSIIWindow();
-            //this.SoundClick();
             csi2.Show();
             this.Close();
         }
@@ -51,7 +49,6 @@ namespace GameLauncher
         private void ButtonClicked_R(object sender, RoutedEventArgs e)
         {
             CSRWindow csir = new CSRWindow();
-            //this.SoundClick();
             csir.Show();
             this.Close();
         }
@@ -67,6 +64,9 @@ namespace GameLauncher
         {
             InstallPathBox.Text = AppSettings.InstallPath;
             AutoUpdateCheckBox.IsChecked = AppSettings.AutoUpdate;
+            ApplyBackground(AppSettings.Background);
+            foreach (ComboBoxItem item in BackgroundComboBox.Items)
+                if ((string)item.Tag == AppSettings.Background) { BackgroundComboBox.SelectedItem = item; break; }
             LoadPatchNotes();
             LoadLauncherVersion();
         }
@@ -79,7 +79,7 @@ namespace GameLauncher
                 string onlineVersion = webClient.DownloadString("https://github.com/Darumacho/CSI-Launcher/releases/download/prod/Version.txt").Trim();
                 LauncherVersionText.Text = $"v{onlineVersion}";
 
-                if (onlineVersion != CurrentVersion)
+                if (onlineVersion != CurrentVersion && AppSettings.AutoUpdate)
                     PromptLauncherUpdate(onlineVersion);
             }
             catch { }
@@ -170,6 +170,11 @@ namespace GameLauncher
                 tempZip);
         }
 
+        private void ApplyBackground(string filename)
+        {
+            BackgroundImage.Source = new BitmapImage(new Uri($"/images/{filename}", UriKind.Relative));
+        }
+
         private void SettingsToggle_Click(object sender, RoutedEventArgs e)
         {
             SettingsColumn.Width = SettingsColumn.Width.Value == 0
@@ -191,6 +196,11 @@ namespace GameLauncher
         {
             AppSettings.InstallPath = InstallPathBox.Text;
             AppSettings.AutoUpdate = AutoUpdateCheckBox.IsChecked == true;
+            if (BackgroundComboBox.SelectedItem is ComboBoxItem selected)
+            {
+                AppSettings.Background = (string)selected.Tag;
+                ApplyBackground(AppSettings.Background);
+            }
             SettingsColumn.Width = new GridLength(0);
         }
 
@@ -205,15 +215,6 @@ namespace GameLauncher
             {
                 PatchNotesText.Text = "Notes de mise à jour indisponibles.";
             }
-        }
-
-        private void SoundClick()
-        {
-            //SoundPlayer start = new SoundPlayer("C:/Users/Darumacho/Documents/Visual Studio 2019/MultiLauncher/GameLauncher/sound/Startup.wav");
-            string Audio_FilePath = AppDomain.CurrentDomain.BaseDirectory + "sound\\Startup.wav";
-            SoundPlayer start = new SoundPlayer(Audio_FilePath);
-            start.Load();
-            start.Play();
         }
     }
 }

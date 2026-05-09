@@ -25,6 +25,71 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="DarkComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="#1a1a2e"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#545ba8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Background" Value="#1a1a2e"/>
+                        <Setter Property="Padding" Value="8,4"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#545ba8"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#545ba8"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Focusable="False" ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                BorderThickness="{Binding BorderThickness, RelativeSource={RelativeSource AncestorType=ComboBox}}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="20"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Path Grid.Column="1" Data="M 0 0 L 4 4 L 8 0 Z"
+                                                      Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter IsHitTestVisible="False" Margin="8,0,24,0"
+                                              VerticalAlignment="Center" HorizontalAlignment="Left"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              TextElement.Foreground="White"/>
+                            <Popup Placement="Bottom" AllowsTransparency="True" Focusable="False"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}" PopupAnimation="Slide">
+                                <Border Background="#1a1a2e" BorderBrush="#545ba8" BorderThickness="1"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <ScrollViewer SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -34,13 +99,13 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="120"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="160"/>
         </Grid.RowDefinitions>
 
         <!-- Background -->
-        <Image Source="/images/BackgroundMain.png" Stretch="UniformToFill"
+        <Image x:Name="BackgroundImage" Source="/images/BackgroundMain.png" Stretch="UniformToFill"
                Grid.RowSpan="4" Grid.ColumnSpan="3"/>
 
         <!-- Permanent sidebar -->
@@ -74,23 +139,34 @@
                           Content="Mises à jour automatiques"
                           FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                           FontSize="13" Foreground="White" Margin="0,16,0,0"/>
+                <TextBlock Text="Fond d'écran :"
+                           FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                           FontSize="13" Foreground="#AAFFFFFF" Margin="0,16,0,6"/>
+                <ComboBox x:Name="BackgroundComboBox"
+                          Style="{StaticResource DarkComboBox}"
+                          FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                          FontSize="13" Height="30">
+                    <ComboBoxItem Content="Défaut" Tag="BackgroundMain.png"/>
+                    <ComboBoxItem Content="Cosmos" Tag="BackgroundSpace.png"/>
+                    <ComboBoxItem Content="Pétillant" Tag="BackgroundStars.png"/>
+                    <ComboBoxItem Content="Futuriste" Tag="BackgroundCyber.png"/>
+                    <ComboBoxItem Content="Singularité" Tag="BackgroundAbstract.png"/>
+                </ComboBox>
                 <Button Content="Enregistrer paramètres" Click="SaveSettings_Click"
                         Margin="0,16,0,0" Height="34" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                         FontSize="13" Background="#3a9e5f" Foreground="White" BorderBrush="Transparent"/>
             </StackPanel>
         </Border>
 
-        <!-- Welcome message -->
-        <TextBlock Grid.Row="1" Grid.Column="2"
-                   Text="Test message accueil"
-                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                   FontFamily="/CSILauncher;component/fonts/#Eurocentric" FontSize="18" Foreground="White"/>
+        <!-- App logo -->
+        <Image Grid.Row="1" Grid.Column="2" Source="/images/AppLogo.png"
+               Height="110" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform"/>
 
         <!-- Game buttons -->
         <UniformGrid Grid.Row="2" Grid.Column="2" Columns="4">
             <Button Width="190" Height="168" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8"
                     Click="ButtonClicked_1" Background="#FFFFFF"
-                    ToolTipService.Placement="Top" ToolTipService.InitialShowDelay="300">
+                    ToolTipService.Placement="Top" ToolTipService.HorizontalOffset="-25" ToolTipService.InitialShowDelay="300">
                 <Button.ToolTip>
                     <ToolTip Style="{StaticResource GameTooltip}"
                              Content="{x:Static local:GameConstants.CSIForeverDescription}"/>
@@ -99,7 +175,7 @@
             </Button>
             <Button Width="190" Height="168" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8"
                     Click="ButtonClicked_2" Background="#FF1D1E1E"
-                    ToolTipService.Placement="Top" ToolTipService.InitialShowDelay="300">
+                    ToolTipService.Placement="Top" ToolTipService.HorizontalOffset="-25" ToolTipService.InitialShowDelay="300">
                 <Button.ToolTip>
                     <ToolTip Style="{StaticResource GameTooltip}"
                              Content="{x:Static local:GameConstants.CSIIForeverDescription}"/>
@@ -108,7 +184,7 @@
             </Button>
             <Button Width="190" Height="168" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8"
                     Click="ButtonClicked_R" Background="Black"
-                    ToolTipService.Placement="Top" ToolTipService.InitialShowDelay="300">
+                    ToolTipService.Placement="Top" ToolTipService.HorizontalOffset="-25" ToolTipService.InitialShowDelay="300">
                 <Button.ToolTip>
                     <ToolTip Style="{StaticResource GameTooltip}"
                              Content="{x:Static local:GameConstants.CSIRogueDescription}"/>
@@ -117,7 +193,7 @@
             </Button>
             <Button Width="190" Height="168" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8"
                     Click="ButtonClicked_Narval" Background="#0a1628"
-                    ToolTipService.Placement="Top" ToolTipService.InitialShowDelay="300">
+                    ToolTipService.Placement="Top" ToolTipService.HorizontalOffset="-25" ToolTipService.InitialShowDelay="300">
                 <Button.ToolTip>
                     <ToolTip Style="{StaticResource GameTooltip}"
                              Content="{x:Static local:GameConstants.NarvalDescription}"/>
