@@ -359,5 +359,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /test installation/
-*.ink
+*.lnk
 smtp.cfg
+GameLauncher\images\*.xcf

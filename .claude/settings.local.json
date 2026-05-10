@@ -7,7 +7,16 @@
       "PowerShell(dotnet publish \"c:\\\\Users\\\\adri1\\\\Documents\\\\Visual Studio 2019\\\\MultiLauncher\\\\GameLauncher\\\\GameLauncher.csproj\" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishReadyToRun=true)",
       "PowerShell(Rename-Item \"c:\\\\Users\\\\adri1\\\\Documents\\\\Visual Studio 2019\\\\MultiLauncher\\\\GameLauncher\\\\images\\\\Background.png\" \"CSII_Title.png\")",
       "Bash(dotnet restore *)",
-      "Bash(dotnet build *)"
+      "Bash(dotnet build *)",
+      "Bash(Select-Object -First 50)",
+      "Bash(Format-Table Name, FullName)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\adri1\\\\Documents\\\\Visual Studio 2019\\\\MultiLauncher\\\\GameLauncher\" -Recurse -File | Where-Object { $_.Extension -in @\\('.xaml', '.cs', '.xaml.cs'\\) } | Select-Object FullName)",
+      "PowerShell($root = \"c:\\\\Users\\\\adri1\\\\Documents\\\\Visual Studio 2019\\\\MultiLauncher\\\\GameLauncher\"; Get-ChildItem -Path $root | Where-Object { $_.PSIsContainer } | ForEach-Object { Write-Host \"Folder: $\\($_.Name\\)\"; Get-ChildItem -Path $_.FullName | Select-Object -First 5 | ForEach-Object { Write-Host \"  - $\\($_.Name\\)\" } })",
+      "Bash(Select-String \"error CS\")",
+      "Bash(dotnet publish *)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\adri1\\.claude\\projects\\c--Users-adri1-Documents-Visual-Studio-2019-MultiLauncher\\memory"
     ]
   }
 }

@@ -190,7 +190,7 @@ namespace GameLauncher
             SettingsColumn.Width = isOpen ? new GridLength(0) : new GridLength(300);
         }
 
-        private async void SendContact_Click(object sender, RoutedEventArgs e)
+private async void SendContact_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(ContactEmailBox.Text))
             {
@@ -257,6 +257,16 @@ namespace GameLauncher
         private void WebsiteButton_Click(object sender, RoutedEventArgs e)
         {
             Process.Start(new ProcessStartInfo("http://csi-world.xyz") { UseShellExecute = true });
+        }
+
+        private void GithubButton_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo("https://github.com/Darumacho") { UseShellExecute = true });
+        }
+
+        private void DiscordButton_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo("https://discord.gg/Crs7zQbaqg") { UseShellExecute = true });
         }
 
         private void BrowseFolder_Click(object sender, RoutedEventArgs e)
