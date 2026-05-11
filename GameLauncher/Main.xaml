@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GameLauncher"
         mc:Ignorable="d"
-        Title="CSI Launcher" Height="760" Width="1280" Background="#545ba8" ResizeMode="NoResize"
+        Title="CSI Launcher" Height="760" Width="1280" Background="#545ba8"
         ContentRendered="Window_ContentRendered">
     <Window.Resources>
         <Style x:Key="GameTooltip" TargetType="ToolTip">
@@ -150,12 +150,30 @@
                         </Viewbox>
                     </Button>
                 </StackPanel>
+                <!-- Top section: logo (home), game buttons, settings/contact -->
                 <StackPanel HorizontalAlignment="Center">
-                    <Image Source="/images/Team_CSI_logo_transparent.png" Width="50" Margin="0,15,0,10"/>
-                    <Border Height="1" Background="#55FFFFFF" Margin="8,0,8,10"/>
+                    <Button Click="SidebarHome_Click" Background="Transparent" BorderBrush="Transparent"
+                            Padding="0" Cursor="Hand"
+                            ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Accueil"/>
+                        </Button.ToolTip>
+                        <Image Source="/images/Team_CSI_logo_transparent.png" Width="50" Margin="0,15,0,10"/>
+                    </Button>
+                    <Border Height="1" Background="#55FFFFFF" Margin="8,0,8,6"/>
+
+                    <!-- Home / settings / contact -->
+                    <Button Content="⌂" Click="SidebarHome_Click"
+                            Width="32" Height="32" FontSize="20"
+                            Background="Transparent" Foreground="White" BorderBrush="Transparent" Padding="0" Margin="0,3,0,0"
+                            ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Accueil"/>
+                        </Button.ToolTip>
+                    </Button>
                     <Button Content="⚙" Click="SettingsToggle_Click"
                             Width="32" Height="32" FontSize="16"
-                            Background="Transparent" Foreground="White" BorderBrush="Transparent" Padding="0"
+                            Background="Transparent" Foreground="White" BorderBrush="Transparent" Padding="0" Margin="0,10,0,0"
                             ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="300">
                         <Button.ToolTip>
                             <ToolTip Style="{StaticResource GameTooltip}" Content="Paramètres"/>
@@ -168,6 +186,42 @@
                         <Button.ToolTip>
                             <ToolTip Style="{StaticResource GameTooltip}" Content="Contact"/>
                         </Button.ToolTip>
+                    </Button>
+
+                    <Border Height="1" Background="#55FFFFFF" Margin="8,8,8,8"/>
+
+                    <!-- Game navigation buttons -->
+                    <Button Click="SidebarCSI_Click" Width="54" Height="42"
+                            Background="Transparent" BorderBrush="Transparent" Padding="2" Margin="0,3,0,0"
+                            ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="CSI Forever"/>
+                        </Button.ToolTip>
+                        <Image Source="images/CSI_Button.png" Stretch="Uniform"/>
+                    </Button>
+                    <Button Click="SidebarCSII_Click" Width="54" Height="42"
+                            Background="Transparent" BorderBrush="Transparent" Padding="2" Margin="0,3,0,0"
+                            ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="CSII Forever"/>
+                        </Button.ToolTip>
+                        <Image Source="images/CSII_Button.png" Stretch="Uniform"/>
+                    </Button>
+                    <Button Click="SidebarCSR_Click" Width="54" Height="42"
+                            Background="Transparent" BorderBrush="Transparent" Padding="2" Margin="0,3,0,0"
+                            ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="CSI Rogue"/>
+                        </Button.ToolTip>
+                        <Image Source="images/CSR_Button.png" Stretch="Uniform"/>
+                    </Button>
+                    <Button Click="SidebarNarval_Click" Width="54" Height="42"
+                            Background="Transparent" BorderBrush="Transparent" Padding="2" Margin="0,3,0,0"
+                            ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Narval Souls"/>
+                        </Button.ToolTip>
+                        <Image Source="images/Narval_Button.png" Stretch="Uniform"/>
                     </Button>
                 </StackPanel>
             </DockPanel>
@@ -236,7 +290,7 @@
             </StackPanel>
         </Border>
 
-<!-- App logo -->
+        <!-- App logo -->
         <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
                 HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10,0,0"
                 CornerRadius="16" BorderBrush="#55FFFFFF" BorderThickness="1"
@@ -247,54 +301,251 @@
             <Image Source="/images/AppLogo.png" Height="100" Stretch="Uniform"/>
         </Border>
 
-        <!-- Game buttons -->
-        <UniformGrid Grid.Row="2" Grid.Column="2" Columns="4">
-            <Button Width="190" Height="168" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8"
-                    Click="ButtonClicked_1" Background="#FFFFFF"
-                    ToolTipService.Placement="Top" ToolTipService.HorizontalOffset="-25" ToolTipService.InitialShowDelay="300">
-                <Button.ToolTip>
-                    <ToolTip Style="{StaticResource GameTooltip}"
-                             Content="{x:Static local:GameConstants.CSIForeverDescription}"/>
-                </Button.ToolTip>
-                <Image Source="images/CSI_Button.png" Stretch="Fill"/>
-            </Button>
-            <Button Width="190" Height="168" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8"
-                    Click="ButtonClicked_2" Background="#FF1D1E1E"
-                    ToolTipService.Placement="Top" ToolTipService.HorizontalOffset="-25" ToolTipService.InitialShowDelay="300">
-                <Button.ToolTip>
-                    <ToolTip Style="{StaticResource GameTooltip}"
-                             Content="{x:Static local:GameConstants.CSIIForeverDescription}"/>
-                </Button.ToolTip>
-                <Image Source="images/CSII_Button.png" Stretch="Fill"/>
-            </Button>
-            <Button Width="190" Height="168" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8"
-                    Click="ButtonClicked_R" Background="Black"
-                    ToolTipService.Placement="Top" ToolTipService.HorizontalOffset="-25" ToolTipService.InitialShowDelay="300">
-                <Button.ToolTip>
-                    <ToolTip Style="{StaticResource GameTooltip}"
-                             Content="{x:Static local:GameConstants.CSIRogueDescription}"/>
-                </Button.ToolTip>
-                <Image Source="images/CSR_Button.png" Stretch="Fill"/>
-            </Button>
-            <Button Width="190" Height="168" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8"
-                    Click="ButtonClicked_Narval" Background="#0a1628"
-                    ToolTipService.Placement="Top" ToolTipService.HorizontalOffset="-25" ToolTipService.InitialShowDelay="300">
-                <Button.ToolTip>
-                    <ToolTip Style="{StaticResource GameTooltip}"
-                             Content="{x:Static local:GameConstants.NarvalDescription}"/>
-                </Button.ToolTip>
-                <Image Source="images/Narval_Button.png" Stretch="Fill"/>
-            </Button>
-        </UniformGrid>
-
-        <!-- Patch notes -->
-        <Border Grid.Row="3" Grid.Column="2" Background="#BB000000" CornerRadius="6" Margin="10,5,10,10">
+        <!-- Home: launcher patch notes (stays below logo when no game is selected) -->
+        <Border x:Name="HomePanel" Grid.Row="2" Grid.RowSpan="2" Grid.Column="2"
+                Background="#BB000000" CornerRadius="6" Margin="10,0,10,10"
+                VerticalAlignment="Bottom" Height="228">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Top" Text="Nouveautés" FontFamily="Optimus" FontSize="16" Foreground="#AAFFFFFF" Margin="8,5,0,3"/>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <TextBlock Name="PatchNotesText" FontFamily="Optimus" FontSize="13" Foreground="White" TextWrapping="Wrap" Margin="8,0,8,5"/>
+                    <TextBlock x:Name="PatchNotesText" FontFamily="Optimus" FontSize="13" Foreground="White" TextWrapping="Wrap" Margin="8,0,8,5"/>
                 </ScrollViewer>
             </DockPanel>
         </Border>
+
+        <!-- Game panels: span all rows so they cover the full content area including the logo -->
+        <Grid Grid.Row="0" Grid.RowSpan="4" Grid.Column="2">
+
+            <!-- CSI Forever -->
+            <Grid x:Name="CSIPanel" Visibility="Collapsed">
+                <Image Stretch="UniformToFill" Source="/images/CSI_Title.png"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,10,0">
+                    <Button Click="CSI_ExportSave_Click" Width="34" Height="34"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="6" Margin="0,0,6,0"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Exporter les sauvegardes"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="18" Height="18">
+                            <Path Fill="White" Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+                        </Viewbox>
+                    </Button>
+                    <Button Click="CSI_ImportSave_Click" Width="34" Height="34"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="6"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Importer une sauvegarde"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="18" Height="18">
+                            <Path Fill="White" Data="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
+                        </Viewbox>
+                    </Button>
+                </StackPanel>
+                <TextBlock x:Name="CSI_VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                           FontSize="16" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                           Foreground="White" Margin="0,0,5,5">
+                    <TextBlock.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="1" Opacity="0.9"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+                <Border Background="#BB000000" CornerRadius="6" Margin="30,0,30,76" Height="130" VerticalAlignment="Bottom">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="Nouveautés" FontFamily="Optimus" FontSize="14" Foreground="#AAFFFFFF" Margin="8,4,0,2"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="CSI_PatchNotesText" FontFamily="Optimus" FontSize="12" Foreground="White" TextWrapping="Wrap" Margin="8,0,8,4"/>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,252">
+                    <Button x:Name="CSI_PlayButton" Content="Vérification du contenu..." Click="CSI_PlayButton_Click"
+                            Height="56" FontSize="22" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                            Foreground="#DDFFFFFF" Background="#545ba8" Padding="10,1,10,1" Width="400" BorderBrush="Transparent"/>
+                    <Button Click="CSI_FolderButton_Click" Width="56" Height="56" Margin="8,0,0,0"
+                            Background="#545ba8" BorderBrush="Transparent"
+                            ToolTipService.Placement="Top" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Ouvrir le dossier d'installation"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="26" Height="26">
+                            <Path Fill="White" Data="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/>
+                        </Viewbox>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- CSII Forever -->
+            <Grid x:Name="CSIIPanel" Visibility="Collapsed">
+                <Image Stretch="UniformToFill" Source="/images/CSII_Title.png"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,10,0">
+                    <Button Click="CSII_ExportSave_Click" Width="34" Height="34"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="6" Margin="0,0,6,0"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Exporter les sauvegardes"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="18" Height="18">
+                            <Path Fill="White" Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+                        </Viewbox>
+                    </Button>
+                    <Button Click="CSII_ImportSave_Click" Width="34" Height="34"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="6"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Importer une sauvegarde"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="18" Height="18">
+                            <Path Fill="White" Data="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
+                        </Viewbox>
+                    </Button>
+                </StackPanel>
+                <TextBlock x:Name="CSII_VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                           FontSize="16" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                           Foreground="White" Margin="0,0,5,5">
+                    <TextBlock.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="1" Opacity="0.9"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+                <Border Background="#BB000000" CornerRadius="6" Margin="30,0,30,76" Height="130" VerticalAlignment="Bottom">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="Nouveautés" FontFamily="Optimus" FontSize="14" Foreground="#AAFFFFFF" Margin="8,4,0,2"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="CSII_PatchNotesText" FontFamily="Optimus" FontSize="12" Foreground="White" TextWrapping="Wrap" Margin="8,0,8,4"/>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,252">
+                    <Button x:Name="CSII_PlayButton" Content="Vérification du contenu..." Click="CSII_PlayButton_Click"
+                            Height="56" FontSize="22" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                            Foreground="#DDFFFFFF" Background="#545ba8" Padding="10,1,10,1" Width="400" BorderBrush="Transparent"/>
+                    <Button Click="CSII_FolderButton_Click" Width="56" Height="56" Margin="8,0,0,0"
+                            Background="#545ba8" BorderBrush="Transparent"
+                            ToolTipService.Placement="Top" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Ouvrir le dossier d'installation"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="26" Height="26">
+                            <Path Fill="White" Data="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/>
+                        </Viewbox>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- CSI Rogue -->
+            <Grid x:Name="CSRPanel" Visibility="Collapsed">
+                <Image Stretch="UniformToFill" Source="/images/CSR_Title.png"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,10,0">
+                    <Button Click="CSR_ExportSave_Click" Width="34" Height="34"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="6" Margin="0,0,6,0"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Exporter les sauvegardes"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="18" Height="18">
+                            <Path Fill="White" Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+                        </Viewbox>
+                    </Button>
+                    <Button Click="CSR_ImportSave_Click" Width="34" Height="34"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="6"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Importer une sauvegarde"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="18" Height="18">
+                            <Path Fill="White" Data="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
+                        </Viewbox>
+                    </Button>
+                </StackPanel>
+                <TextBlock x:Name="CSR_VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                           FontSize="16" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                           Foreground="White" Margin="0,0,5,5">
+                    <TextBlock.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="1" Opacity="0.9"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+                <Border Background="#BB000000" CornerRadius="6" Margin="30,0,30,76" Height="130" VerticalAlignment="Bottom">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="Nouveautés" FontFamily="Optimus" FontSize="14" Foreground="#AAFFFFFF" Margin="8,4,0,2"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="CSR_PatchNotesText" FontFamily="Optimus" FontSize="12" Foreground="White" TextWrapping="Wrap" Margin="8,0,8,4"/>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,252">
+                    <Button x:Name="CSR_PlayButton" Content="Vérification du contenu..." Click="CSR_PlayButton_Click"
+                            Height="56" FontSize="22" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                            Foreground="#DDFFFFFF" Background="#545ba8" Padding="10,1,10,1" Width="400" BorderBrush="Transparent"/>
+                    <Button Click="CSR_FolderButton_Click" Width="56" Height="56" Margin="8,0,0,0"
+                            Background="#545ba8" BorderBrush="Transparent"
+                            ToolTipService.Placement="Top" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Ouvrir le dossier d'installation"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="26" Height="26">
+                            <Path Fill="White" Data="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/>
+                        </Viewbox>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- Narval Souls -->
+            <Grid x:Name="NarvalPanel" Visibility="Collapsed">
+                <Image Stretch="UniformToFill" Source="/images/Narval_Title.png"/>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,10,0">
+                    <Button Click="Narval_ExportSave_Click" Height="34"
+                            Background="#AA000000" Foreground="White" BorderBrush="Transparent"
+                            FontFamily="/CSILauncher;component/fonts/#Pixel Operator" FontSize="18" Padding="10,0" Margin="0,0,6,0"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Exporter les sauvegardes"/>
+                        </Button.ToolTip>
+                         <Viewbox Width="18" Height="18">
+                            <Path Fill="White" Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
+                        </Viewbox>
+                    </Button>
+                    <Button Click="Narval_ImportSave_Click" Height="34"
+                            Background="#AA000000" Foreground="White" BorderBrush="Transparent"
+                            FontFamily="/CSILauncher;component/fonts/#Pixel Operator" FontSize="18" Padding="10,0"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Importer une sauvegarde"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="18" Height="18">
+                            <Path Fill="White" Data="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
+                        </Viewbox>
+                    </Button>
+                </StackPanel>
+                <TextBlock x:Name="Narval_VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                           FontSize="22" FontFamily="/CSILauncher;component/fonts/#Pixel Operator"
+                           Foreground="White" Margin="0,0,5,5">
+                    <TextBlock.Effect>
+                        <DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="1" Opacity="0.9"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+                <Border Background="#BB000000" CornerRadius="6" Margin="30,0,30,76" Height="130" VerticalAlignment="Bottom">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="Nouveautés" FontFamily="/CSILauncher;component/fonts/#Pixel Operator" FontSize="24" Foreground="#AAFFFFFF" Margin="8,4,0,2"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="Narval_PatchNotesText" FontFamily="/CSILauncher;component/fonts/#Pixel Operator" FontSize="18" Foreground="White" TextWrapping="Wrap" Margin="8,0,8,4"/>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,252">
+                    <Button x:Name="Narval_PlayButton" Content="Vérification du contenu..." Click="Narval_PlayButton_Click"
+                            Height="56" FontSize="32" FontFamily="/CSILauncher;component/fonts/#Pixel Operator"
+                            Foreground="#DDFFFFFF" Background="#0d4a6b" Padding="10,1,10,1" Width="400" BorderBrush="Transparent"/>
+                    <Button Click="Narval_FolderButton_Click" Width="56" Height="56" Margin="8,0,0,0"
+                            Background="#0d4a6b" BorderBrush="Transparent"
+                            ToolTipService.Placement="Top" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Ouvrir le dossier d'installation"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="26" Height="26">
+                            <Path Fill="White" Data="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/>
+                        </Viewbox>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+        </Grid>
     </Grid>
 </Window>

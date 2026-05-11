@@ -362,3 +362,5 @@ FodyWeavers.xsd
 *.lnk
 smtp.cfg
 GameLauncher\images\*.xcf
+/.claude/
+.claude/settings.local.json
