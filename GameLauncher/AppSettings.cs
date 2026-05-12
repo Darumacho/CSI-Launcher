@@ -1,18 +1,22 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace GameLauncher
 {
     static class AppSettings
     {
+        private static readonly string BaseDir =
+            Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+
         private static readonly string SettingsFile =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.txt");
+            Path.Combine(BaseDir, "settings.txt");
 
         private static readonly string AutoUpdateFile =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "autoupdate.txt");
+            Path.Combine(BaseDir, "autoupdate.txt");
 
         private static readonly string BackgroundFile =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "background.txt");
+            Path.Combine(BaseDir, "background.txt");
 
         public static string InstallPath
         {
@@ -45,7 +49,7 @@ namespace GameLauncher
         }
 
         private static readonly string SmtpFile =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "smtp.cfg");
+            Path.Combine(BaseDir, "smtp.cfg");
 
         public static string SmtpEmail => ReadSmtpConfig("email");
         public static string SmtpPassword => ReadSmtpConfig("password");

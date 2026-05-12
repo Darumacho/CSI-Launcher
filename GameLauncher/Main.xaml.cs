@@ -19,7 +19,9 @@ namespace GameLauncher
         // ─── Launcher ───────────────────────────────────────────────────────────
 
         private static readonly string LauncherVersionFile =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LauncherVersion.txt");
+            Path.Combine(
+                Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName),
+                "LauncherVersion.txt");
 
         private string CurrentVersion =>
             File.Exists(LauncherVersionFile) ? File.ReadAllText(LauncherVersionFile).Trim() : "1.0";
