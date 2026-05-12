@@ -1,10 +1,10 @@
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,6 +17,8 @@ namespace GameLauncher
     public partial class Main : Window
     {
         // ─── Launcher ───────────────────────────────────────────────────────────
+
+        private static readonly HttpClient _http = new HttpClient();
 
         private static readonly string LauncherVersionFile =
             Path.Combine(
@@ -126,8 +128,9 @@ namespace GameLauncher
                 CSI_VersionText.Text = local.ToString();
                 try
                 {
-                    var online = new GameVersion(new WebClient().DownloadString(
-                        "https://github.com/Darumacho/CSI-Forever/releases/download/release/Version.txt"));
+                    var online = new GameVersion(_http.GetStringAsync(
+                        "https://github.com/Darumacho/CSI-Forever/releases/download/release/Version.txt")
+                        .GetAwaiter().GetResult());
                     if (online.IsDifferentThan(local))
                         CSI_InstallGameFiles(true, online);
                     else
@@ -145,45 +148,26 @@ namespace GameLauncher
             }
         }
 
-        private void CSI_InstallGameFiles(bool isUpdate, GameVersion version)
+        private async void CSI_InstallGameFiles(bool isUpdate, GameVersion version)
         {
             try
             {
-                var wc = new WebClient();
                 if (isUpdate)
                     CsiStatus = LauncherStatus.downloadingUpdate;
                 else
                 {
                     CsiStatus = LauncherStatus.downloadingGame;
-                    version = new GameVersion(wc.DownloadString(
+                    version = new GameVersion(await _http.GetStringAsync(
                         "https://github.com/Darumacho/CSI-Forever/releases/download/release/Version.txt"));
                     CSI_VersionText.Text = version.ToString();
                 }
-                wc.DownloadProgressChanged += (s, pe) =>
-                {
-                    long recv = pe.BytesReceived / (1024 * 1024);
-                    long total = pe.TotalBytesToReceive / (1024 * 1024);
-                    Dispatcher.Invoke(() => CSI_PlayButton.Content = total > 0
-                        ? $"Téléchargement - {recv} sur {total}Mo"
-                        : $"Téléchargement - {recv}Mo");
-                };
-                wc.DownloadFileCompleted += CSI_DownloadCompleted;
-                wc.DownloadFileAsync(
-                    new Uri("https://github.com/Darumacho/CSI-Forever/releases/download/release/CSI.Forever.zip"),
-                    _csiZip, version);
-            }
-            catch (Exception ex)
-            {
-                CsiStatus = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors de l'installation: {ex}");
-            }
-        }
-
-        private async void CSI_DownloadCompleted(object sender, AsyncCompletedEventArgs e)
-        {
-            try
-            {
-                string ver = ((GameVersion)e.UserState).ToString();
+                await DownloadWithProgressAsync(
+                    "https://github.com/Darumacho/CSI-Forever/releases/download/release/CSI.Forever.zip",
+                    _csiZip,
+                    (recv, total) => Dispatcher.Invoke(() => CSI_PlayButton.Content = total > 0
+                        ? $"Téléchargement - {recv / (1024 * 1024)} sur {total / (1024 * 1024)}Mo"
+                        : $"Téléchargement - {recv / (1024 * 1024)}Mo"));
+                string ver = version.ToString();
                 CSI_PlayButton.Content = "Installation...";
                 await Task.Run(() =>
                 {
@@ -197,7 +181,7 @@ namespace GameLauncher
             catch (Exception ex)
             {
                 CsiStatus = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors du téléchargement: {ex}");
+                MessageBox.Show($"Erreur lors de l'installation: {ex}");
             }
         }
 
@@ -224,8 +208,9 @@ namespace GameLauncher
         {
             try
             {
-                CSI_PatchNotesText.Text = new WebClient().DownloadString(
-                    "https://github.com/Darumacho/CSI-Forever/releases/download/release/PatchNotes.txt");
+                CSI_PatchNotesText.Text = _http.GetStringAsync(
+                    "https://github.com/Darumacho/CSI-Forever/releases/download/release/PatchNotes.txt")
+                    .GetAwaiter().GetResult();
             }
             catch { CSI_PatchNotesText.Text = "Notes de mise à jour indisponibles."; }
         }
@@ -277,8 +262,9 @@ namespace GameLauncher
                 CSII_VersionText.Text = local.ToString();
                 try
                 {
-                    var online = new GameVersion(new WebClient().DownloadString(
-                        "https://www.dropbox.com/s/udosqsch0c03lew/Version.txt?dl=1"));
+                    var online = new GameVersion(_http.GetStringAsync(
+                        "https://www.dropbox.com/s/udosqsch0c03lew/Version.txt?dl=1")
+                        .GetAwaiter().GetResult());
                     if (online.IsDifferentThan(local))
                         CSII_InstallGameFiles(true, online);
                     else
@@ -296,45 +282,26 @@ namespace GameLauncher
             }
         }
 
-        private void CSII_InstallGameFiles(bool isUpdate, GameVersion version)
+        private async void CSII_InstallGameFiles(bool isUpdate, GameVersion version)
         {
             try
             {
-                var wc = new WebClient();
                 if (isUpdate)
                     CsiiStatus = LauncherStatus.downloadingUpdate;
                 else
                 {
                     CsiiStatus = LauncherStatus.downloadingGame;
-                    version = new GameVersion(wc.DownloadString(
+                    version = new GameVersion(await _http.GetStringAsync(
                         "https://www.dropbox.com/s/udosqsch0c03lew/Version.txt?dl=1"));
                     CSII_VersionText.Text = version.ToString();
                 }
-                wc.DownloadProgressChanged += (s, pe) =>
-                {
-                    long recv = pe.BytesReceived / (1024 * 1024);
-                    long total = pe.TotalBytesToReceive / (1024 * 1024);
-                    Dispatcher.Invoke(() => CSII_PlayButton.Content = total > 0
-                        ? $"Téléchargement - {recv} sur {total}Mo"
-                        : $"Téléchargement - {recv}Mo");
-                };
-                wc.DownloadFileCompleted += CSII_DownloadCompleted;
-                wc.DownloadFileAsync(
-                    new Uri("https://www.dropbox.com/s/sdw7vddvdwkvlx0/Build.zip?dl=1"),
-                    _csiiZip, version);
-            }
-            catch (Exception ex)
-            {
-                CsiiStatus = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors de l'installation: {ex}");
-            }
-        }
-
-        private async void CSII_DownloadCompleted(object sender, AsyncCompletedEventArgs e)
-        {
-            try
-            {
-                string ver = ((GameVersion)e.UserState).ToString();
+                await DownloadWithProgressAsync(
+                    "https://www.dropbox.com/s/sdw7vddvdwkvlx0/Build.zip?dl=1",
+                    _csiiZip,
+                    (recv, total) => Dispatcher.Invoke(() => CSII_PlayButton.Content = total > 0
+                        ? $"Téléchargement - {recv / (1024 * 1024)} sur {total / (1024 * 1024)}Mo"
+                        : $"Téléchargement - {recv / (1024 * 1024)}Mo"));
+                string ver = version.ToString();
                 CSII_PlayButton.Content = "Installation...";
                 await Task.Run(() =>
                 {
@@ -348,7 +315,7 @@ namespace GameLauncher
             catch (Exception ex)
             {
                 CsiiStatus = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors du téléchargement: {ex}");
+                MessageBox.Show($"Erreur lors de l'installation: {ex}");
             }
         }
 
@@ -370,8 +337,9 @@ namespace GameLauncher
         {
             try
             {
-                CSII_PatchNotesText.Text = new WebClient().DownloadString(
-                    "https://github.com/Darumacho/CSII-Forever/releases/download/release/PatchNotes.txt");
+                CSII_PatchNotesText.Text = _http.GetStringAsync(
+                    "https://github.com/Darumacho/CSII-Forever/releases/download/release/PatchNotes.txt")
+                    .GetAwaiter().GetResult();
             }
             catch { CSII_PatchNotesText.Text = "Notes de mise à jour indisponibles."; }
         }
@@ -423,8 +391,9 @@ namespace GameLauncher
                 CSR_VersionText.Text = local.ToString();
                 try
                 {
-                    var online = new GameVersion(new WebClient().DownloadString(
-                        "https://www.dropbox.com/s/udosqsch0c03lew/Version.txt?dl=1"));
+                    var online = new GameVersion(_http.GetStringAsync(
+                        "https://www.dropbox.com/s/udosqsch0c03lew/Version.txt?dl=1")
+                        .GetAwaiter().GetResult());
                     if (online.IsDifferentThan(local))
                         CSR_InstallGameFiles(true, online);
                     else
@@ -442,45 +411,26 @@ namespace GameLauncher
             }
         }
 
-        private void CSR_InstallGameFiles(bool isUpdate, GameVersion version)
+        private async void CSR_InstallGameFiles(bool isUpdate, GameVersion version)
         {
             try
             {
-                var wc = new WebClient();
                 if (isUpdate)
                     CsrStatus = LauncherStatus.downloadingUpdate;
                 else
                 {
                     CsrStatus = LauncherStatus.downloadingGame;
-                    version = new GameVersion(wc.DownloadString(
+                    version = new GameVersion(await _http.GetStringAsync(
                         "https://www.dropbox.com/s/9k566zu9r1doxtt/Version.txt?dl=1"));
                     CSR_VersionText.Text = version.ToString();
                 }
-                wc.DownloadProgressChanged += (s, pe) =>
-                {
-                    long recv = pe.BytesReceived / (1024 * 1024);
-                    long total = pe.TotalBytesToReceive / (1024 * 1024);
-                    Dispatcher.Invoke(() => CSR_PlayButton.Content = total > 0
-                        ? $"Téléchargement - {recv} sur {total}Mo"
-                        : $"Téléchargement - {recv}Mo");
-                };
-                wc.DownloadFileCompleted += CSR_DownloadCompleted;
-                wc.DownloadFileAsync(
-                    new Uri("https://www.dropbox.com/s/6gzo9x64gi5c0dw/Build.zip?dl=1"),
-                    _csrZip, version);
-            }
-            catch (Exception ex)
-            {
-                CsrStatus = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors de l'installation: {ex}");
-            }
-        }
-
-        private async void CSR_DownloadCompleted(object sender, AsyncCompletedEventArgs e)
-        {
-            try
-            {
-                string ver = ((GameVersion)e.UserState).ToString();
+                await DownloadWithProgressAsync(
+                    "https://www.dropbox.com/s/6gzo9x64gi5c0dw/Build.zip?dl=1",
+                    _csrZip,
+                    (recv, total) => Dispatcher.Invoke(() => CSR_PlayButton.Content = total > 0
+                        ? $"Téléchargement - {recv / (1024 * 1024)} sur {total / (1024 * 1024)}Mo"
+                        : $"Téléchargement - {recv / (1024 * 1024)}Mo"));
+                string ver = version.ToString();
                 CSR_PlayButton.Content = "Installation...";
                 await Task.Run(() =>
                 {
@@ -494,7 +444,7 @@ namespace GameLauncher
             catch (Exception ex)
             {
                 CsrStatus = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors du téléchargement: {ex}");
+                MessageBox.Show($"Erreur lors de l'installation: {ex}");
             }
         }
 
@@ -516,8 +466,9 @@ namespace GameLauncher
         {
             try
             {
-                CSR_PatchNotesText.Text = new WebClient().DownloadString(
-                    "https://github.com/Darumacho/CSI-Rogue/releases/download/release/PatchNotes.txt");
+                CSR_PatchNotesText.Text = _http.GetStringAsync(
+                    "https://github.com/Darumacho/CSI-Rogue/releases/download/release/PatchNotes.txt")
+                    .GetAwaiter().GetResult();
             }
             catch { CSR_PatchNotesText.Text = "Notes de mise à jour indisponibles."; }
         }
@@ -569,8 +520,9 @@ namespace GameLauncher
                 Narval_VersionText.Text = local.ToString();
                 try
                 {
-                    var online = new GameVersion(new WebClient().DownloadString(
-                        "https://github.com/Darumacho/Narval-Souls/releases/download/release/Version.txt"));
+                    var online = new GameVersion(_http.GetStringAsync(
+                        "https://github.com/Darumacho/Narval-Souls/releases/download/release/Version.txt")
+                        .GetAwaiter().GetResult());
                     if (online.IsDifferentThan(local))
                         Narval_InstallGameFiles(true, online);
                     else
@@ -588,45 +540,26 @@ namespace GameLauncher
             }
         }
 
-        private void Narval_InstallGameFiles(bool isUpdate, GameVersion version)
+        private async void Narval_InstallGameFiles(bool isUpdate, GameVersion version)
         {
             try
             {
-                var wc = new WebClient();
                 if (isUpdate)
                     NarvalStatus = LauncherStatus.downloadingUpdate;
                 else
                 {
                     NarvalStatus = LauncherStatus.downloadingGame;
-                    version = new GameVersion(wc.DownloadString(
+                    version = new GameVersion(await _http.GetStringAsync(
                         "https://github.com/Darumacho/Narval-Souls/releases/download/release/Version.txt"));
                     Narval_VersionText.Text = version.ToString();
                 }
-                wc.DownloadProgressChanged += (s, pe) =>
-                {
-                    long recv = pe.BytesReceived / (1024 * 1024);
-                    long total = pe.TotalBytesToReceive / (1024 * 1024);
-                    Dispatcher.Invoke(() => Narval_PlayButton.Content = total > 0
-                        ? $"Téléchargement - {recv} sur {total}Mo"
-                        : $"Téléchargement - {recv}Mo");
-                };
-                wc.DownloadFileCompleted += Narval_DownloadCompleted;
-                wc.DownloadFileAsync(
-                    new Uri("https://github.com/Darumacho/Narval-Souls/releases/download/release/Narval.Souls.zip"),
-                    _narvalZip, version);
-            }
-            catch (Exception ex)
-            {
-                NarvalStatus = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors de l'installation: {ex}");
-            }
-        }
-
-        private async void Narval_DownloadCompleted(object sender, AsyncCompletedEventArgs e)
-        {
-            try
-            {
-                string ver = ((GameVersion)e.UserState).ToString();
+                await DownloadWithProgressAsync(
+                    "https://github.com/Darumacho/Narval-Souls/releases/download/release/Narval.Souls.zip",
+                    _narvalZip,
+                    (recv, total) => Dispatcher.Invoke(() => Narval_PlayButton.Content = total > 0
+                        ? $"Téléchargement - {recv / (1024 * 1024)} sur {total / (1024 * 1024)}Mo"
+                        : $"Téléchargement - {recv / (1024 * 1024)}Mo"));
+                string ver = version.ToString();
                 Narval_PlayButton.Content = "Installation...";
                 await Task.Run(() =>
                 {
@@ -640,7 +573,7 @@ namespace GameLauncher
             catch (Exception ex)
             {
                 NarvalStatus = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors du téléchargement: {ex}");
+                MessageBox.Show($"Erreur lors de l'installation: {ex}");
             }
         }
 
@@ -667,8 +600,9 @@ namespace GameLauncher
         {
             try
             {
-                Narval_PatchNotesText.Text = new WebClient().DownloadString(
-                    "https://github.com/Darumacho/Narval-Souls/releases/download/release/PatchNotes.txt");
+                Narval_PatchNotesText.Text = _http.GetStringAsync(
+                    "https://github.com/Darumacho/Narval-Souls/releases/download/release/PatchNotes.txt")
+                    .GetAwaiter().GetResult();
             }
             catch { Narval_PatchNotesText.Text = "Notes de mise à jour indisponibles."; }
         }
@@ -679,8 +613,9 @@ namespace GameLauncher
         {
             try
             {
-                string onlineVersion = new WebClient().DownloadString(
-                    "https://github.com/Darumacho/CSI-Launcher/releases/download/prod/Version.txt").Trim();
+                string onlineVersion = _http.GetStringAsync(
+                    "https://github.com/Darumacho/CSI-Launcher/releases/download/prod/Version.txt")
+                    .GetAwaiter().GetResult().Trim();
                 LauncherVersionText.Text = $"v{onlineVersion}";
 
                 if (onlineVersion != CurrentVersion && AppSettings.AutoUpdate)
@@ -701,34 +636,22 @@ namespace GameLauncher
                 DownloadLauncherUpdate(newVersion);
         }
 
-        private void DownloadLauncherUpdate(string newVersion)
+        private async void DownloadLauncherUpdate(string newVersion)
         {
             string exePath = Process.GetCurrentProcess().MainModule.FileName;
             string exeDir  = Path.GetDirectoryName(exePath);
             string tempZip = Path.Combine(exeDir, "launcher_update.zip");
             string tempDir = Path.Combine(exeDir, "launcher_update_temp");
 
-            var wc = new WebClient();
-            wc.DownloadProgressChanged += (s, pe) =>
+            try
             {
-                Dispatcher.Invoke(() => LauncherVersionText.Text = pe.ProgressPercentage > 0
-                    ? $"{pe.ProgressPercentage}%"
-                    : "...");
-            };
-            wc.DownloadFileCompleted += async (s, e) =>
-            {
-                if (e.Error != null)
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        LauncherVersionText.Text = $"v{CurrentVersion}";
-                        MessageBox.Show("Échec de la mise à jour du launcher.", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
-                    });
-                    File.Delete(tempZip);
-                    return;
-                }
+                await DownloadWithProgressAsync(
+                    "https://github.com/Darumacho/CSI-Launcher/releases/download/prod/CSILauncher.zip",
+                    tempZip,
+                    (recv, total) => Dispatcher.Invoke(() =>
+                        LauncherVersionText.Text = total > 0 ? $"{recv * 100 / total}%" : "..."));
 
-                Dispatcher.Invoke(() => LauncherVersionText.Text = "Installation...");
+                LauncherVersionText.Text = "Installation...";
 
                 await Task.Run(() =>
                 {
@@ -740,11 +663,8 @@ namespace GameLauncher
                 string newExe = Directory.GetFiles(tempDir, "CSILauncher.exe", SearchOption.AllDirectories).FirstOrDefault();
                 if (newExe == null)
                 {
-                    Dispatcher.Invoke(() =>
-                    {
-                        LauncherVersionText.Text = $"v{CurrentVersion}";
-                        MessageBox.Show("Fichier introuvable dans l'archive de mise à jour.", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
-                    });
+                    LauncherVersionText.Text = $"v{CurrentVersion}";
+                    MessageBox.Show("Fichier introuvable dans l'archive de mise à jour.", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
                     Directory.Delete(tempDir, true);
                     return;
                 }
@@ -766,12 +686,36 @@ namespace GameLauncher
                     CreateNoWindow = true
                 });
 
-                Dispatcher.Invoke(() => Application.Current.Shutdown());
-            };
+                Application.Current.Shutdown();
+            }
+            catch (Exception)
+            {
+                LauncherVersionText.Text = $"v{CurrentVersion}";
+                MessageBox.Show("Échec de la mise à jour du launcher.", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (File.Exists(tempZip)) File.Delete(tempZip);
+            }
+        }
 
-            wc.DownloadFileAsync(
-                new Uri("https://github.com/Darumacho/CSI-Launcher/releases/download/prod/CSILauncher.zip"),
-                tempZip);
+        // ─── Download helper ─────────────────────────────────────────────────────
+
+        // onProgress is called from a thread-pool thread — callers must use Dispatcher.Invoke for UI updates.
+        private static async Task DownloadWithProgressAsync(string url, string destPath,
+            Action<long, long> onProgress)
+        {
+            using var response = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            long total = response.Content.Headers.ContentLength ?? -1;
+            await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            await using var fs = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true);
+            var buffer = new byte[81920];
+            long downloaded = 0;
+            int read;
+            while ((read = await stream.ReadAsync(buffer.AsMemory()).ConfigureAwait(false)) > 0)
+            {
+                await fs.WriteAsync(buffer.AsMemory(0, read)).ConfigureAwait(false);
+                downloaded += read;
+                onProgress(downloaded, total);
+            }
         }
 
         // ─── Settings / Contact ───────────────────────────────────────────────────
@@ -898,20 +842,15 @@ namespace GameLauncher
             string sizeInfo = "";
             try
             {
-                var req = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(zipUrl);
-                req.Method = "HEAD";
-                req.Timeout = 6000;
-                req.AllowAutoRedirect = true;
-                using (var resp = (System.Net.HttpWebResponse)req.GetResponse())
+                using var req = new HttpRequestMessage(HttpMethod.Head, zipUrl);
+                using var resp = _http.Send(req);
+                long bytes = resp.Content.Headers.ContentLength ?? -1;
+                if (bytes > 0)
                 {
-                    long bytes = resp.ContentLength;
-                    if (bytes > 0)
-                    {
-                        string size = bytes >= 1024L * 1024 * 1024
-                            ? $"{bytes / (1024.0 * 1024 * 1024):F1} Go"
-                            : $"{bytes / (1024 * 1024)} Mo";
-                        sizeInfo = $"\nEspace requis : environ {size}";
-                    }
+                    string size = bytes >= 1024L * 1024 * 1024
+                        ? $"{bytes / (1024.0 * 1024 * 1024):F1} Go"
+                        : $"{bytes / (1024 * 1024)} Mo";
+                    sizeInfo = $"\nEspace requis : environ {size}";
                 }
             }
             catch { }
@@ -1064,7 +1003,6 @@ namespace GameLauncher
             {
                 using (var zip = ZipFile.OpenRead(dlg.FileName))
                 {
-                    // Locate and validate Game.ini inside the archive
                     var iniEntry = zip.Entries.FirstOrDefault(e =>
                         Path.GetFileName(e.FullName).Equals("Game.ini", StringComparison.OrdinalIgnoreCase));
 
@@ -1093,7 +1031,6 @@ namespace GameLauncher
                         }
                     }
 
-                    // Extract .rvdata2 save files
                     var saveEntries = zip.Entries.Where(e =>
                         e.FullName.EndsWith(".rvdata2", StringComparison.OrdinalIgnoreCase) &&
                         Path.GetFileNameWithoutExtension(e.FullName)
@@ -1176,8 +1113,9 @@ namespace GameLauncher
         {
             try
             {
-                PatchNotesText.Text = new WebClient().DownloadString(
-                    "https://github.com/Darumacho/CSI-Launcher/releases/download/prod/PatchNotes.txt");
+                PatchNotesText.Text = _http.GetStringAsync(
+                    "https://github.com/Darumacho/CSI-Launcher/releases/download/prod/PatchNotes.txt")
+                    .GetAwaiter().GetResult();
             }
             catch
             {

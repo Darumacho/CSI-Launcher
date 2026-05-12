@@ -1,27 +1,17 @@
-﻿using System;
-using System.ComponentModel;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 
 namespace GameLauncher
 {
-    enum CSIILauncherStatus
-    {
-        ready,
-        failed,
-        downloadingGame,
-        downloadingUpdate
-    }
-
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class CSIIWindow : Window
     {
+        private static readonly HttpClient _http = new HttpClient();
+
         private string rootPath;
         private string versionFile;
         private string gameZip;
@@ -43,8 +33,6 @@ namespace GameLauncher
                         PlayButton.Content = "Échec de l'installation";
                         break;
                     case LauncherStatus.downloadingGame:
-                        PlayButton.Content = "Téléchargement en cours";
-                        break;
                     case LauncherStatus.downloadingUpdate:
                         PlayButton.Content = "Téléchargement en cours";
                         break;
@@ -59,9 +47,8 @@ namespace GameLauncher
             InitializeComponent();
 
             rootPath = Path.Combine(AppSettings.InstallPath, "CSII Forever");
-            bool exists = System.IO.Directory.Exists(rootPath);
-            if (!exists)
-                System.IO.Directory.CreateDirectory(rootPath);
+            if (!Directory.Exists(rootPath))
+                Directory.CreateDirectory(rootPath);
             versionFile = Path.Combine(rootPath, "Version.txt");
             gameZip = Path.Combine(rootPath, "Build.zip");
             gameExe = Path.Combine(rootPath, "Game.exe");
@@ -73,21 +60,15 @@ namespace GameLauncher
             {
                 Version localVersion = new Version(File.ReadAllText(versionFile));
                 VersionText.Text = localVersion.ToString();
-
                 try
                 {
-                    WebClient webClient = new WebClient();
-                    //URL Version
-                    Version onlineVersion = new Version(webClient.DownloadString("https://www.dropbox.com/s/udosqsch0c03lew/Version.txt?dl=1"));
-
+                    Version onlineVersion = new Version(_http.GetStringAsync(
+                        "https://www.dropbox.com/s/udosqsch0c03lew/Version.txt?dl=1")
+                        .GetAwaiter().GetResult());
                     if (onlineVersion.IsDifferentThan(localVersion))
-                    {
                         InstallGameFiles(true, onlineVersion);
-                    }
                     else
-                    {
                         Status = LauncherStatus.ready;
-                    }
                 }
                 catch (Exception ex)
                 {
@@ -101,58 +82,42 @@ namespace GameLauncher
             }
         }
 
-        private void InstallGameFiles(bool _isUpdate, Version _onlineVersion)
+        private async void InstallGameFiles(bool isUpdate, Version onlineVersion)
         {
             try
             {
-                WebClient webClient = new WebClient();
-                if (_isUpdate)
-                {
+                if (isUpdate)
                     Status = LauncherStatus.downloadingUpdate;
-                }
                 else
                 {
                     Status = LauncherStatus.downloadingGame;
-                    _onlineVersion = new Version(webClient.DownloadString("https://www.dropbox.com/s/udosqsch0c03lew/Version.txt?dl=1"));
+                    onlineVersion = new Version(_http.GetStringAsync(
+                        "https://www.dropbox.com/s/udosqsch0c03lew/Version.txt?dl=1")
+                        .GetAwaiter().GetResult());
                 }
 
-                webClient.DownloadProgressChanged += (s, pe) =>
-                {
-                    long receivedMB = pe.BytesReceived / (1024 * 1024);
-                    long totalMB = pe.TotalBytesToReceive / (1024 * 1024);
-                    Dispatcher.Invoke(() => PlayButton.Content = totalMB > 0
-                        ? $"Téléchargement - {receivedMB} sur {totalMB}Mo"
-                        : $"Téléchargement - {receivedMB}Mo");
-                };
-                webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadGameCompletedCallback);
-                webClient.DownloadFileAsync(new Uri("https://www.dropbox.com/s/sdw7vddvdwkvlx0/Build.zip?dl=1"), gameZip, _onlineVersion);
-            }
-            catch (Exception ex)
-            {
-                Status = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors de l'installation: {ex}");
-            }
-        }
+                await DownloadWithProgressAsync(
+                    "https://www.dropbox.com/s/sdw7vddvdwkvlx0/Build.zip?dl=1",
+                    gameZip,
+                    (recv, total) => Dispatcher.Invoke(() => PlayButton.Content = total > 0
+                        ? $"Téléchargement - {recv / (1024 * 1024)} sur {total / (1024 * 1024)}Mo"
+                        : $"Téléchargement - {recv / (1024 * 1024)}Mo"));
 
-        private async void DownloadGameCompletedCallback(object sender, AsyncCompletedEventArgs e)
-        {
-            try
-            {
-                string onlineVersion = ((Version)e.UserState).ToString();
+                string ver = onlineVersion.ToString();
                 PlayButton.Content = "Installation...";
                 await Task.Run(() =>
                 {
                     ZipFile.ExtractToDirectory(gameZip, rootPath, true);
                     File.Delete(gameZip);
-                    File.WriteAllText(versionFile, onlineVersion);
+                    File.WriteAllText(versionFile, ver);
                 });
-                VersionText.Text = onlineVersion;
+                VersionText.Text = ver;
                 Status = LauncherStatus.ready;
             }
             catch (Exception ex)
             {
                 Status = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors du téléchargement: {ex}");
+                MessageBox.Show($"Erreur lors de l'installation: {ex}");
             }
         }
 
@@ -169,8 +134,9 @@ namespace GameLauncher
         {
             try
             {
-                WebClient webClient = new WebClient();
-                PatchNotesText.Text = webClient.DownloadString("https://github.com/Darumacho/CSII-Forever/releases/download/release/PatchNotes.txt");
+                PatchNotesText.Text = _http.GetStringAsync(
+                    "https://github.com/Darumacho/CSII-Forever/releases/download/release/PatchNotes.txt")
+                    .GetAwaiter().GetResult();
             }
             catch
             {
@@ -182,10 +148,7 @@ namespace GameLauncher
         {
             if (File.Exists(gameExe) && Status == LauncherStatus.ready)
             {
-                ProcessStartInfo startInfo = new ProcessStartInfo(gameExe);
-                startInfo.WorkingDirectory = Path.Combine(rootPath);
-                Process.Start(startInfo);
-
+                Process.Start(new ProcessStartInfo(gameExe) { WorkingDirectory = rootPath });
                 Close();
             }
             else if (Status == LauncherStatus.failed)
@@ -193,11 +156,31 @@ namespace GameLauncher
                 CheckForUpdates();
             }
         }
+
         private void Return_Click(object sender, RoutedEventArgs e)
         {
             Main main = new Main();
             main.Show();
             this.Close();
+        }
+
+        private static async Task DownloadWithProgressAsync(string url, string destPath,
+            Action<long, long> onProgress)
+        {
+            using var response = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            long total = response.Content.Headers.ContentLength ?? -1;
+            await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            await using var fs = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true);
+            var buffer = new byte[81920];
+            long downloaded = 0;
+            int read;
+            while ((read = await stream.ReadAsync(buffer.AsMemory()).ConfigureAwait(false)) > 0)
+            {
+                await fs.WriteAsync(buffer.AsMemory(0, read)).ConfigureAwait(false);
+                downloaded += read;
+                onProgress(downloaded, total);
+            }
         }
     }
 
@@ -215,48 +198,23 @@ namespace GameLauncher
             minor = _minor;
             subMinor = _subMinor;
         }
+
         internal Version(string _version)
         {
-            string[] versionStrings = _version.Split('.');
+            string[] versionStrings = _version.Trim().Split('.');
             if (versionStrings.Length != 3)
             {
-                major = 0;
-                minor = 0;
-                subMinor = 0;
+                major = 0; minor = 0; subMinor = 0;
                 return;
             }
-
             major = short.Parse(versionStrings[0]);
             minor = short.Parse(versionStrings[1]);
             subMinor = short.Parse(versionStrings[2]);
         }
 
-        internal bool IsDifferentThan(Version _otherVersion)
-        {
-            if (major != _otherVersion.major)
-            {
-                return true;
-            }
-            else
-            {
-                if (minor != _otherVersion.minor)
-                {
-                    return true;
-                }
-                else
-                {
-                    if (subMinor != _otherVersion.subMinor)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
+        internal bool IsDifferentThan(Version other)
+            => major != other.major || minor != other.minor || subMinor != other.subMinor;
 
-        public override string ToString()
-        {
-            return $"{major}.{minor}.{subMinor}";
-        }
+        public override string ToString() => $"{major}.{minor}.{subMinor}";
     }
 }

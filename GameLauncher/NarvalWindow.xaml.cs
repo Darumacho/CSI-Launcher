@@ -1,9 +1,8 @@
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -11,6 +10,8 @@ namespace GameLauncher
 {
     public partial class NarvalWindow : Window
     {
+        private static readonly HttpClient _http = new HttpClient();
+
         private string rootPath;
         private string versionFile;
         private string gameZip;
@@ -58,8 +59,9 @@ namespace GameLauncher
                 VersionText.Text = localVersion.ToString();
                 try
                 {
-                    WebClient webClient = new WebClient();
-                    NarvalVersion onlineVersion = new NarvalVersion(webClient.DownloadString("https://github.com/Darumacho/Narval-Souls/releases/download/release/Version.txt"));
+                    NarvalVersion onlineVersion = new NarvalVersion(_http.GetStringAsync(
+                        "https://github.com/Darumacho/Narval-Souls/releases/download/release/Version.txt")
+                        .GetAwaiter().GetResult());
                     if (onlineVersion.IsDifferentThan(localVersion))
                         InstallGameFiles(true, onlineVersion);
                     else
@@ -77,57 +79,42 @@ namespace GameLauncher
             }
         }
 
-        private void InstallGameFiles(bool _isUpdate, NarvalVersion _onlineVersion)
+        private async void InstallGameFiles(bool isUpdate, NarvalVersion onlineVersion)
         {
             try
             {
-                WebClient webClient = new WebClient();
-                if (_isUpdate)
-                {
+                if (isUpdate)
                     Status = LauncherStatus.downloadingUpdate;
-                }
                 else
                 {
                     Status = LauncherStatus.downloadingGame;
-                    _onlineVersion = new NarvalVersion(webClient.DownloadString("https://github.com/Darumacho/Narval-Souls/releases/download/release/Version.txt"));
+                    onlineVersion = new NarvalVersion(_http.GetStringAsync(
+                        "https://github.com/Darumacho/Narval-Souls/releases/download/release/Version.txt")
+                        .GetAwaiter().GetResult());
                 }
-                webClient.DownloadProgressChanged += (s, pe) =>
-                {
-                    long receivedMB = pe.BytesReceived / (1024 * 1024);
-                    long totalMB = pe.TotalBytesToReceive / (1024 * 1024);
-                    Dispatcher.Invoke(() => PlayButton.Content = totalMB > 0
-                        ? $"Téléchargement - {receivedMB} sur {totalMB}Mo"
-                        : $"Téléchargement - {receivedMB}Mo");
-                };
-                webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadGameCompletedCallback);
-                webClient.DownloadFileAsync(new Uri("https://github.com/Darumacho/Narval-Souls/releases/download/release/Narval.Souls.zip"), gameZip, _onlineVersion);
-            }
-            catch (Exception ex)
-            {
-                Status = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors de l'installation: {ex}");
-            }
-        }
 
-        private async void DownloadGameCompletedCallback(object sender, AsyncCompletedEventArgs e)
-        {
-            try
-            {
-                string onlineVersion = ((NarvalVersion)e.UserState).ToString();
+                await DownloadWithProgressAsync(
+                    "https://github.com/Darumacho/Narval-Souls/releases/download/release/Narval.Souls.zip",
+                    gameZip,
+                    (recv, total) => Dispatcher.Invoke(() => PlayButton.Content = total > 0
+                        ? $"Téléchargement - {recv / (1024 * 1024)} sur {total / (1024 * 1024)}Mo"
+                        : $"Téléchargement - {recv / (1024 * 1024)}Mo"));
+
+                string ver = onlineVersion.ToString();
                 PlayButton.Content = "Installation...";
                 await Task.Run(() =>
                 {
                     ZipFile.ExtractToDirectory(gameZip, rootPath, true);
                     File.Delete(gameZip);
-                    File.WriteAllText(versionFile, onlineVersion);
+                    File.WriteAllText(versionFile, ver);
                 });
-                VersionText.Text = onlineVersion;
+                VersionText.Text = ver;
                 Status = LauncherStatus.ready;
             }
             catch (Exception ex)
             {
                 Status = LauncherStatus.failed;
-                MessageBox.Show($"Erreur lors du téléchargement: {ex}");
+                MessageBox.Show($"Erreur lors de l'installation: {ex}");
             }
         }
 
@@ -144,8 +131,9 @@ namespace GameLauncher
         {
             try
             {
-                WebClient webClient = new WebClient();
-                PatchNotesText.Text = webClient.DownloadString("https://github.com/Darumacho/Narval-Souls/releases/download/release/PatchNotes.txt");
+                PatchNotesText.Text = _http.GetStringAsync(
+                    "https://github.com/Darumacho/Narval-Souls/releases/download/release/PatchNotes.txt")
+                    .GetAwaiter().GetResult();
             }
             catch
             {
@@ -180,6 +168,25 @@ namespace GameLauncher
             main.Show();
             Close();
         }
+
+        private static async Task DownloadWithProgressAsync(string url, string destPath,
+            Action<long, long> onProgress)
+        {
+            using var response = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            long total = response.Content.Headers.ContentLength ?? -1;
+            await using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            await using var fs = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true);
+            var buffer = new byte[81920];
+            long downloaded = 0;
+            int read;
+            while ((read = await stream.ReadAsync(buffer.AsMemory()).ConfigureAwait(false)) > 0)
+            {
+                await fs.WriteAsync(buffer.AsMemory(0, read)).ConfigureAwait(false);
+                downloaded += read;
+                onProgress(downloaded, total);
+            }
+        }
     }
 
     struct NarvalVersion
@@ -199,7 +206,7 @@ namespace GameLauncher
 
         internal NarvalVersion(string _version)
         {
-            string[] versionStrings = _version.Split('.');
+            string[] versionStrings = _version.Trim().Split('.');
             if (versionStrings.Length != 3)
             {
                 major = 0; minor = 0; subMinor = 0;
@@ -211,9 +218,7 @@ namespace GameLauncher
         }
 
         internal bool IsDifferentThan(NarvalVersion other)
-        {
-            return major != other.major || minor != other.minor || subMinor != other.subMinor;
-        }
+            => major != other.major || minor != other.minor || subMinor != other.subMinor;
 
         public override string ToString() => $"{major}.{minor}.{subMinor}";
     }
