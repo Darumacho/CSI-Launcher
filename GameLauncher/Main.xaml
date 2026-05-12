@@ -321,28 +321,41 @@
                 <Image Stretch="UniformToFill" Source="/images/CSI_Title.png"/>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,10,0">
                     <Button Click="CSI_ExportSave_Click" Width="34" Height="34"
-                            Background="#AA000000" BorderBrush="Transparent" Padding="6" Margin="0,0,6,0"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,0,6,0"
                             ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
                         <Button.ToolTip>
                             <ToolTip Style="{StaticResource GameTooltip}" Content="Exporter les sauvegardes"/>
                         </Button.ToolTip>
-                        <Viewbox Width="18" Height="18">
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Path Fill="White" Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
                         </Viewbox>
                     </Button>
                     <Button Click="CSI_ImportSave_Click" Width="34" Height="34"
-                            Background="#AA000000" BorderBrush="Transparent" Padding="6"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
                         <Button.ToolTip>
                             <ToolTip Style="{StaticResource GameTooltip}" Content="Importer une sauvegarde"/>
                         </Button.ToolTip>
-                        <Viewbox Width="18" Height="18">
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Path Fill="White" Data="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
+                        </Viewbox>
+                    </Button>
+                    <Button Click="CSI_Uninstall_Click" Width="34" Height="34"
+                            Background="#AA5c0000" BorderBrush="Transparent" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,0,0,0"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Désinstaller"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Path Fill="White" Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                         </Viewbox>
                     </Button>
                 </StackPanel>
                 <TextBlock x:Name="CSI_VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right"
-                           FontSize="16" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                           FontSize="22" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                            Foreground="White" Margin="0,0,5,5">
                     <TextBlock.Effect>
                         <DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="1" Opacity="0.9"/>
@@ -378,28 +391,41 @@
                 <Image Stretch="UniformToFill" Source="/images/CSII_Title.png"/>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,10,0">
                     <Button Click="CSII_ExportSave_Click" Width="34" Height="34"
-                            Background="#AA000000" BorderBrush="Transparent" Padding="6" Margin="0,0,6,0"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,0,6,0"
                             ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
                         <Button.ToolTip>
                             <ToolTip Style="{StaticResource GameTooltip}" Content="Exporter les sauvegardes"/>
                         </Button.ToolTip>
-                        <Viewbox Width="18" Height="18">
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Path Fill="White" Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
                         </Viewbox>
                     </Button>
                     <Button Click="CSII_ImportSave_Click" Width="34" Height="34"
-                            Background="#AA000000" BorderBrush="Transparent" Padding="6"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
                         <Button.ToolTip>
                             <ToolTip Style="{StaticResource GameTooltip}" Content="Importer une sauvegarde"/>
                         </Button.ToolTip>
-                        <Viewbox Width="18" Height="18">
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Path Fill="White" Data="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
+                        </Viewbox>
+                    </Button>
+                    <Button Click="CSII_Uninstall_Click" Width="34" Height="34"
+                            Background="#AA5c0000" BorderBrush="Transparent" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,0,0,0"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Désinstaller"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Path Fill="White" Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                         </Viewbox>
                     </Button>
                 </StackPanel>
                 <TextBlock x:Name="CSII_VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right"
-                           FontSize="16" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                           FontSize="22" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                            Foreground="White" Margin="0,0,5,5">
                     <TextBlock.Effect>
                         <DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="1" Opacity="0.9"/>
@@ -435,28 +461,41 @@
                 <Image Stretch="UniformToFill" Source="/images/CSR_Title.png"/>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,10,10,0">
                     <Button Click="CSR_ExportSave_Click" Width="34" Height="34"
-                            Background="#AA000000" BorderBrush="Transparent" Padding="6" Margin="0,0,6,0"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,0,6,0"
                             ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
                         <Button.ToolTip>
                             <ToolTip Style="{StaticResource GameTooltip}" Content="Exporter les sauvegardes"/>
                         </Button.ToolTip>
-                        <Viewbox Width="18" Height="18">
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Path Fill="White" Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
                         </Viewbox>
                     </Button>
                     <Button Click="CSR_ImportSave_Click" Width="34" Height="34"
-                            Background="#AA000000" BorderBrush="Transparent" Padding="6"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
                         <Button.ToolTip>
                             <ToolTip Style="{StaticResource GameTooltip}" Content="Importer une sauvegarde"/>
                         </Button.ToolTip>
-                        <Viewbox Width="18" Height="18">
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Path Fill="White" Data="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
+                        </Viewbox>
+                    </Button>
+                    <Button Click="CSR_Uninstall_Click" Width="34" Height="34"
+                            Background="#AA5c0000" BorderBrush="Transparent" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,0,0,0"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Désinstaller"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Path Fill="White" Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                         </Viewbox>
                     </Button>
                 </StackPanel>
                 <TextBlock x:Name="CSR_VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right"
-                           FontSize="16" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                           FontSize="22" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                            Foreground="White" Margin="0,0,5,5">
                     <TextBlock.Effect>
                         <DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="1" Opacity="0.9"/>
@@ -498,19 +537,30 @@
                         <Button.ToolTip>
                             <ToolTip Style="{StaticResource GameTooltip}" Content="Exporter les sauvegardes"/>
                         </Button.ToolTip>
-                         <Viewbox Width="18" Height="18">
+                         <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Path Fill="White" Data="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/>
                         </Viewbox>
                     </Button>
-                    <Button Click="Narval_ImportSave_Click" Height="34"
-                            Background="#AA000000" Foreground="White" BorderBrush="Transparent"
-                            FontFamily="/CSILauncher;component/fonts/#Pixel Operator" FontSize="18" Padding="10,0"
+                    <Button Click="Narval_ImportSave_Click" Width="34" Height="34"
+                            Background="#AA000000" BorderBrush="Transparent" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
                             ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
                         <Button.ToolTip>
                             <ToolTip Style="{StaticResource GameTooltip}" Content="Importer une sauvegarde"/>
                         </Button.ToolTip>
-                        <Viewbox Width="18" Height="18">
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Path Fill="White" Data="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/>
+                        </Viewbox>
+                    </Button>
+                    <Button Click="Narval_Uninstall_Click" Width="34" Height="34"
+                            Background="#AA5c0000" BorderBrush="Transparent" Padding="0"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="10,0,0,0"
+                            ToolTipService.Placement="Bottom" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Désinstaller"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Path Fill="White" Data="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                         </Viewbox>
                     </Button>
                 </StackPanel>

@@ -88,9 +88,10 @@ namespace GameLauncher
             set
             {
                 _csiStatus = value;
-                CSI_PlayButton.Content = value == LauncherStatus.ready   ? "Jouer à CSI Forever"
-                                       : value == LauncherStatus.failed  ? "Échec de l'installation"
-                                                                         : "Téléchargement en cours";
+                CSI_PlayButton.Content = value == LauncherStatus.ready         ? "Jouer à CSI Forever"
+                                       : value == LauncherStatus.failed        ? "Échec de l'installation"
+                                       : value == LauncherStatus.notInstalled  ? "Installer"
+                                                                               : "Téléchargement en cours";
             }
         }
 
@@ -102,7 +103,9 @@ namespace GameLauncher
             _csiZip         = Path.Combine(_csiRoot, "Build.zip");
             _csiExe         = Path.Combine(_csiRoot, "CSIForever/Game.exe");
 
-            if (!File.Exists(_csiExe) || AppSettings.AutoUpdate)
+            if (!File.Exists(_csiExe))
+                CsiStatus = LauncherStatus.notInstalled;
+            else if (AppSettings.AutoUpdate)
                 CSI_CheckForUpdates();
             else
             {
@@ -207,6 +210,12 @@ namespace GameLauncher
                 else
                     CSI_CheckForUpdates();
             }
+            else if (_csiStatus == LauncherStatus.notInstalled)
+            {
+                if (ConfirmInstall("CSI Forever",
+                    "https://github.com/Darumacho/CSI-Forever/releases/download/release/CSI.Forever.zip"))
+                    CSI_CheckForUpdates();
+            }
         }
 
         private void CSI_LoadPatchNotes()
@@ -230,9 +239,10 @@ namespace GameLauncher
             set
             {
                 _csiiStatus = value;
-                CSII_PlayButton.Content = value == LauncherStatus.ready  ? "Jouer à CSII Forever"
-                                        : value == LauncherStatus.failed ? "Échec de l'installation"
-                                                                         : "Téléchargement en cours";
+                CSII_PlayButton.Content = value == LauncherStatus.ready        ? "Jouer à CSII Forever"
+                                        : value == LauncherStatus.failed       ? "Échec de l'installation"
+                                        : value == LauncherStatus.notInstalled ? "Installer"
+                                                                               : "Téléchargement en cours";
             }
         }
 
@@ -244,7 +254,9 @@ namespace GameLauncher
             _csiiZip         = Path.Combine(_csiiRoot, "Build.zip");
             _csiiExe         = Path.Combine(_csiiRoot, "Game.exe");
 
-            if (!File.Exists(_csiiExe) || AppSettings.AutoUpdate)
+            if (!File.Exists(_csiiExe))
+                CsiiStatus = LauncherStatus.notInstalled;
+            else if (AppSettings.AutoUpdate)
                 CSII_CheckForUpdates();
             else
             {
@@ -344,6 +356,12 @@ namespace GameLauncher
                 Process.Start(new ProcessStartInfo(_csiiExe) { WorkingDirectory = _csiiRoot });
             else if (_csiiStatus == LauncherStatus.failed)
                 CSII_CheckForUpdates();
+            else if (_csiiStatus == LauncherStatus.notInstalled)
+            {
+                if (ConfirmInstall("CSII Forever",
+                    "https://www.dropbox.com/s/sdw7vddvdwkvlx0/Build.zip?dl=1"))
+                    CSII_CheckForUpdates();
+            }
         }
 
         private void CSII_LoadPatchNotes()
@@ -367,9 +385,10 @@ namespace GameLauncher
             set
             {
                 _csrStatus = value;
-                CSR_PlayButton.Content = value == LauncherStatus.ready  ? "Jouer à CSI Rogue"
-                                       : value == LauncherStatus.failed ? "Échec de l'installation"
-                                                                        : "Téléchargement en cours";
+                CSR_PlayButton.Content = value == LauncherStatus.ready        ? "Jouer à CSI Rogue"
+                                       : value == LauncherStatus.failed       ? "Échec de l'installation"
+                                       : value == LauncherStatus.notInstalled ? "Installer"
+                                                                              : "Téléchargement en cours";
             }
         }
 
@@ -381,7 +400,9 @@ namespace GameLauncher
             _csrZip         = Path.Combine(_csrRoot, "Build.zip");
             _csrExe         = Path.Combine(_csrRoot, "Game.exe");
 
-            if (!File.Exists(_csrExe) || AppSettings.AutoUpdate)
+            if (!File.Exists(_csrExe))
+                CsrStatus = LauncherStatus.notInstalled;
+            else if (AppSettings.AutoUpdate)
                 CSR_CheckForUpdates();
             else
             {
@@ -481,6 +502,12 @@ namespace GameLauncher
                 Process.Start(new ProcessStartInfo(_csrExe) { WorkingDirectory = _csrRoot });
             else if (_csrStatus == LauncherStatus.failed)
                 CSR_CheckForUpdates();
+            else if (_csrStatus == LauncherStatus.notInstalled)
+            {
+                if (ConfirmInstall("CSI Rogue",
+                    "https://www.dropbox.com/s/6gzo9x64gi5c0dw/Build.zip?dl=1"))
+                    CSR_CheckForUpdates();
+            }
         }
 
         private void CSR_LoadPatchNotes()
@@ -504,9 +531,10 @@ namespace GameLauncher
             set
             {
                 _narvalStatus = value;
-                Narval_PlayButton.Content = value == LauncherStatus.ready  ? "Jouer à Narval Souls"
-                                          : value == LauncherStatus.failed ? "Échec de l'installation"
-                                                                           : "Téléchargement en cours";
+                Narval_PlayButton.Content = value == LauncherStatus.ready        ? "Jouer à Narval Souls"
+                                          : value == LauncherStatus.failed       ? "Échec de l'installation"
+                                          : value == LauncherStatus.notInstalled ? "Installer"
+                                                                                 : "Téléchargement en cours";
             }
         }
 
@@ -518,7 +546,9 @@ namespace GameLauncher
             _narvalZip         = Path.Combine(_narvalRoot, "Build.zip");
             _narvalExe         = Path.Combine(_narvalRoot, "Narval Souls/Game.exe");
 
-            if (!File.Exists(_narvalExe) || AppSettings.AutoUpdate)
+            if (!File.Exists(_narvalExe))
+                NarvalStatus = LauncherStatus.notInstalled;
+            else if (AppSettings.AutoUpdate)
                 Narval_CheckForUpdates();
             else
             {
@@ -621,6 +651,12 @@ namespace GameLauncher
                 if (File.Exists(_narvalExe))
                     Process.Start(new ProcessStartInfo(_narvalExe) { WorkingDirectory = _narvalRoot });
                 else
+                    Narval_CheckForUpdates();
+            }
+            else if (_narvalStatus == LauncherStatus.notInstalled)
+            {
+                if (ConfirmInstall("Narval Souls",
+                    "https://github.com/Darumacho/Narval-Souls/releases/download/release/Narval.Souls.zip"))
                     Narval_CheckForUpdates();
             }
         }
@@ -855,10 +891,75 @@ namespace GameLauncher
             Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
         }
 
+        private bool ConfirmInstall(string gameName, string zipUrl)
+        {
+            string sizeInfo = "";
+            try
+            {
+                var req = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(zipUrl);
+                req.Method = "HEAD";
+                req.Timeout = 6000;
+                req.AllowAutoRedirect = true;
+                using (var resp = (System.Net.HttpWebResponse)req.GetResponse())
+                {
+                    long bytes = resp.ContentLength;
+                    if (bytes > 0)
+                    {
+                        string size = bytes >= 1024L * 1024 * 1024
+                            ? $"{bytes / (1024.0 * 1024 * 1024):F1} Go"
+                            : $"{bytes / (1024 * 1024)} Mo";
+                        sizeInfo = $"\nEspace requis : environ {size}";
+                    }
+                }
+            }
+            catch { }
+
+            return MessageBox.Show(
+                $"{gameName} n'est pas encore installé.{sizeInfo}\n\nVoulez-vous l'installer maintenant ?",
+                $"Installer {gameName}",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question) == MessageBoxResult.Yes;
+        }
+
         private void CSI_FolderButton_Click(object sender, RoutedEventArgs e)    => OpenFolder("CSI Forever");
         private void CSII_FolderButton_Click(object sender, RoutedEventArgs e)   => OpenFolder("CSII Forever");
         private void CSR_FolderButton_Click(object sender, RoutedEventArgs e)    => OpenFolder("CSI Rogue");
         private void Narval_FolderButton_Click(object sender, RoutedEventArgs e) => OpenFolder("Narval Souls");
+
+        private void CSI_Uninstall_Click(object sender, RoutedEventArgs e)
+            => UninstallGame("CSI Forever", _csiRoot, () => { CsiStatus = LauncherStatus.notInstalled; CSI_VersionText.Text = ""; });
+        private void CSII_Uninstall_Click(object sender, RoutedEventArgs e)
+            => UninstallGame("CSII Forever", _csiiRoot, () => { CsiiStatus = LauncherStatus.notInstalled; CSII_VersionText.Text = ""; });
+        private void CSR_Uninstall_Click(object sender, RoutedEventArgs e)
+            => UninstallGame("CSI Rogue", _csrRoot, () => { CsrStatus = LauncherStatus.notInstalled; CSR_VersionText.Text = ""; });
+        private void Narval_Uninstall_Click(object sender, RoutedEventArgs e)
+            => UninstallGame("Narval Souls", _narvalRoot, () => { NarvalStatus = LauncherStatus.notInstalled; Narval_VersionText.Text = ""; });
+
+        private void UninstallGame(string gameName, string gameRoot, Action onUninstalled)
+        {
+            if (string.IsNullOrEmpty(gameRoot) || !Directory.Exists(gameRoot))
+            {
+                MessageBox.Show("Le jeu n'est pas installé.", "Désinstallation", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (MessageBox.Show(
+                    $"Êtes-vous sûr de vouloir désinstaller {gameName} ?\n\nTous les fichiers du jeu seront supprimés définitivement.",
+                    $"Désinstaller {gameName}",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+
+            try
+            {
+                Directory.Delete(gameRoot, recursive: true);
+                onUninstalled();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de la désinstallation : {ex.Message}", "Erreur",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
 
         private void CSI_ExportSave_Click(object sender, RoutedEventArgs e)
             => ExportSaves("CSI Forever", _csiRoot);

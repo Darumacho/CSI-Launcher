@@ -5,6 +5,7 @@ Launcher - version 1.4 :
 	- les jeux sont désormais accessibles depuis le menu
 	- possibilité d'importer et exporter les sauvegardes pour chaque jeu
 	- ajout d'un lien vers l'emplacement actuel de chaque jeu
+	- ajout de la désinstallation manuelle
 
 - La dernière version de Narval Souls est désormais disponible depuis le launcher !
 - La nouvelle encyclopédie officielle CSI World sera bientôt mise en ligne !

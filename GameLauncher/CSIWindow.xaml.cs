@@ -14,7 +14,8 @@ namespace GameLauncher
         ready,
         failed,
         downloadingGame,
-        downloadingUpdate
+        downloadingUpdate,
+        notInstalled
     }
 
     /// <summary>
