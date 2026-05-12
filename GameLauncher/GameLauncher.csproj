@@ -55,9 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="smtp.cfg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="smtp.cfg" Condition="Exists('smtp.cfg')" />
   </ItemGroup>
 
 </Project>

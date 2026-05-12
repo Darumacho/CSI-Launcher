@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace GameLauncher
 {
@@ -48,18 +50,22 @@ namespace GameLauncher
             set => File.WriteAllText(BackgroundFile, value);
         }
 
-        private static readonly string SmtpFile =
-            Path.Combine(BaseDir, "smtp.cfg");
-
         public static string SmtpEmail => ReadSmtpConfig("email");
         public static string SmtpPassword => ReadSmtpConfig("password");
 
         private static string ReadSmtpConfig(string key)
         {
-            if (!File.Exists(SmtpFile)) return null;
-            foreach (var line in File.ReadAllLines(SmtpFile))
+            var assembly = Assembly.GetExecutingAssembly();
+            var resource = assembly.GetManifestResourceNames()
+                .FirstOrDefault(n => n.EndsWith("smtp.cfg", StringComparison.OrdinalIgnoreCase));
+            if (resource == null) return null;
+
+            using var stream = assembly.GetManifestResourceStream(resource);
+            using var reader = new StreamReader(stream);
+            string line;
+            while ((line = reader.ReadLine()) != null)
             {
-                var parts = line.Split(new[] { '=' }, 2);
+                var parts = line.Split('=', 2);
                 if (parts.Length == 2 && parts[0].Trim() == key)
                     return parts[1].Trim();
             }
