@@ -21,9 +21,7 @@ namespace GameLauncher
         private static readonly HttpClient _http = new HttpClient();
 
         private static readonly string LauncherVersionFile =
-            Path.Combine(
-                Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName),
-                "LauncherVersion.txt");
+            Path.Combine(AppSettings.ConfigDir, "LauncherVersion.txt");
 
         private string CurrentVersion =>
             File.Exists(LauncherVersionFile) ? File.ReadAllText(LauncherVersionFile).Trim() : "1.0";
@@ -96,6 +94,10 @@ namespace GameLauncher
                                        : value == LauncherStatus.failed        ? "Échec de l'installation"
                                        : value == LauncherStatus.notInstalled  ? "Installer"
                                                                                : "Téléchargement en cours";
+                var csiVis = (value == LauncherStatus.ready || value == LauncherStatus.failed) ? Visibility.Visible : Visibility.Collapsed;
+                CSI_ExportButton.Visibility = csiVis;
+                CSI_ImportButton.Visibility = csiVis;
+                CSI_UninstallButton.Visibility = csiVis;
             }
         }
 
@@ -230,6 +232,10 @@ namespace GameLauncher
                                         : value == LauncherStatus.failed       ? "Échec de l'installation"
                                         : value == LauncherStatus.notInstalled ? "Installer"
                                                                                : "Téléchargement en cours";
+                var csiiVis = (value == LauncherStatus.ready || value == LauncherStatus.failed) ? Visibility.Visible : Visibility.Collapsed;
+                CSII_ExportButton.Visibility = csiiVis;
+                CSII_ImportButton.Visibility = csiiVis;
+                CSII_UninstallButton.Visibility = csiiVis;
             }
         }
 
@@ -359,6 +365,10 @@ namespace GameLauncher
                                        : value == LauncherStatus.failed       ? "Échec de l'installation"
                                        : value == LauncherStatus.notInstalled ? "Installer"
                                                                               : "Téléchargement en cours";
+                var csrVis = (value == LauncherStatus.ready || value == LauncherStatus.failed) ? Visibility.Visible : Visibility.Collapsed;
+                CSR_ExportButton.Visibility = csrVis;
+                CSR_ImportButton.Visibility = csrVis;
+                CSR_UninstallButton.Visibility = csrVis;
             }
         }
 
@@ -488,6 +498,10 @@ namespace GameLauncher
                                           : value == LauncherStatus.failed       ? "Échec de l'installation"
                                           : value == LauncherStatus.notInstalled ? "Installer"
                                                                                  : "Téléchargement en cours";
+                var narvalVis = (value == LauncherStatus.ready || value == LauncherStatus.failed) ? Visibility.Visible : Visibility.Collapsed;
+                Narval_ExportButton.Visibility = narvalVis;
+                Narval_ImportButton.Visibility = narvalVis;
+                Narval_UninstallButton.Visibility = narvalVis;
             }
         }
 
@@ -669,6 +683,7 @@ namespace GameLauncher
                     return;
                 }
 
+                Directory.CreateDirectory(AppSettings.ConfigDir);
                 File.WriteAllText(LauncherVersionFile, newVersion);
 
                 string scriptPath = Path.Combine(exeDir, "launcher_update.bat");

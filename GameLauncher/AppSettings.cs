@@ -11,14 +11,17 @@ namespace GameLauncher
         private static readonly string BaseDir =
             Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
 
+        internal static readonly string ConfigDir =
+            Path.Combine(BaseDir, "Config");
+
         private static readonly string SettingsFile =
-            Path.Combine(BaseDir, "settings.txt");
+            Path.Combine(ConfigDir, "settings.txt");
 
         private static readonly string AutoUpdateFile =
-            Path.Combine(BaseDir, "autoupdate.txt");
+            Path.Combine(ConfigDir, "autoupdate.txt");
 
         private static readonly string BackgroundFile =
-            Path.Combine(BaseDir, "background.txt");
+            Path.Combine(ConfigDir, "background.txt");
 
         public static string InstallPath
         {
@@ -32,7 +35,7 @@ namespace GameLauncher
                 }
                 return AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
             }
-            set => File.WriteAllText(SettingsFile, value.TrimEnd('\\', '/'));
+            set { Directory.CreateDirectory(ConfigDir); File.WriteAllText(SettingsFile, value.TrimEnd('\\', '/')); }
         }
 
         public static string Background
@@ -47,7 +50,7 @@ namespace GameLauncher
                 }
                 return "BackgroundMain.png";
             }
-            set => File.WriteAllText(BackgroundFile, value);
+            set { Directory.CreateDirectory(ConfigDir); File.WriteAllText(BackgroundFile, value); }
         }
 
         public static string SmtpEmail => ReadSmtpConfig("email");
@@ -80,7 +83,7 @@ namespace GameLauncher
                     return File.ReadAllText(AutoUpdateFile).Trim() != "false";
                 return true;
             }
-            set => File.WriteAllText(AutoUpdateFile, value ? "true" : "false");
+            set { Directory.CreateDirectory(ConfigDir); File.WriteAllText(AutoUpdateFile, value ? "true" : "false"); }
         }
     }
 }
