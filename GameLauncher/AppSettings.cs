@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,43 +15,121 @@ namespace GameLauncher
         internal static readonly string ConfigDir =
             Path.Combine(BaseDir, "Config");
 
-        private static readonly string SettingsFile =
-            Path.Combine(ConfigDir, "settings.txt");
+        private static readonly string IniFile =
+            Path.Combine(ConfigDir, "settings.ini");
 
-        private static readonly string AutoUpdateFile =
-            Path.Combine(ConfigDir, "autoupdate.txt");
+        private static Dictionary<string, string> _values;
 
-        private static readonly string BackgroundFile =
-            Path.Combine(ConfigDir, "background.txt");
+        private static Dictionary<string, string> Values
+        {
+            get
+            {
+                _values ??= Load();
+                return _values;
+            }
+        }
+
+        private static Dictionary<string, string> Load()
+        {
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            if (File.Exists(IniFile))
+            {
+                foreach (var line in File.ReadAllLines(IniFile))
+                {
+                    var parts = line.Split('=', 2);
+                    if (parts.Length == 2)
+                        dict[parts[0].Trim()] = parts[1].Trim();
+                }
+            }
+
+            MigrateOldFiles(dict);
+
+            return dict;
+        }
+
+        private static void MigrateOldFiles(Dictionary<string, string> dict)
+        {
+            bool changed = false;
+
+            string settingsFile = Path.Combine(ConfigDir, "settings.txt");
+            if (File.Exists(settingsFile))
+            {
+                string val = File.ReadAllText(settingsFile).Trim();
+                if (!string.IsNullOrEmpty(val) && !dict.ContainsKey("install_path"))
+                    dict["install_path"] = val;
+                File.Delete(settingsFile);
+                changed = true;
+            }
+
+            string autoUpdateFile = Path.Combine(ConfigDir, "autoupdate.txt");
+            if (File.Exists(autoUpdateFile))
+            {
+                string val = File.ReadAllText(autoUpdateFile).Trim();
+                if (!string.IsNullOrEmpty(val) && !dict.ContainsKey("auto_update"))
+                    dict["auto_update"] = val;
+                File.Delete(autoUpdateFile);
+                changed = true;
+            }
+
+            string backgroundFile = Path.Combine(ConfigDir, "background.txt");
+            if (File.Exists(backgroundFile))
+            {
+                string val = File.ReadAllText(backgroundFile).Trim();
+                if (!string.IsNullOrEmpty(val) && !dict.ContainsKey("background"))
+                    dict["background"] = val;
+                File.Delete(backgroundFile);
+                changed = true;
+            }
+
+            if (changed)
+                Save(dict);
+        }
+
+        private static void Save(Dictionary<string, string> dict)
+        {
+            Directory.CreateDirectory(ConfigDir);
+            File.WriteAllLines(IniFile, dict.Select(kv => $"{kv.Key}={kv.Value}"));
+        }
+
+        private static void Set(string key, string value)
+        {
+            Values[key] = value;
+            Save(Values);
+        }
 
         public static string InstallPath
         {
             get
             {
-                if (File.Exists(SettingsFile))
-                {
-                    string path = File.ReadAllText(SettingsFile).Trim();
-                    if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
-                        return path;
-                }
+                if (Values.TryGetValue("install_path", out string path) &&
+                    !string.IsNullOrEmpty(path) && Directory.Exists(path))
+                    return path;
                 return AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
             }
-            set { Directory.CreateDirectory(ConfigDir); File.WriteAllText(SettingsFile, value.TrimEnd('\\', '/')); }
+            set => Set("install_path", value.TrimEnd('\\', '/'));
         }
 
         public static string Background
         {
             get
             {
-                if (File.Exists(BackgroundFile))
-                {
-                    string val = File.ReadAllText(BackgroundFile).Trim();
-                    if (!string.IsNullOrEmpty(val))
-                        return val;
-                }
+                if (Values.TryGetValue("background", out string val) && !string.IsNullOrEmpty(val))
+                    return val;
                 return "BackgroundMain.png";
             }
-            set { Directory.CreateDirectory(ConfigDir); File.WriteAllText(BackgroundFile, value); }
+            set => Set("background", value);
+        }
+
+        public static bool AutoUpdate
+        {
+            get
+            {
+                if (Values.TryGetValue("auto_update", out string val))
+                    return val != "false";
+                return true;
+            }
+            set => Set("auto_update", value ? "true" : "false");
         }
 
         public static string SmtpEmail => ReadSmtpConfig("email");
@@ -73,17 +152,6 @@ namespace GameLauncher
                     return parts[1].Trim();
             }
             return null;
-        }
-
-        public static bool AutoUpdate
-        {
-            get
-            {
-                if (File.Exists(AutoUpdateFile))
-                    return File.ReadAllText(AutoUpdateFile).Trim() != "false";
-                return true;
-            }
-            set { Directory.CreateDirectory(ConfigDir); File.WriteAllText(AutoUpdateFile, value ? "true" : "false"); }
         }
     }
 }
