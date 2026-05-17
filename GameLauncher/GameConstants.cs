@@ -1,7 +1,18 @@
+using System.Collections.Generic;
+
 namespace GameLauncher
 {
     static class GameConstants
     {
+        public static readonly IReadOnlyDictionary<int, string> GameNames = new Dictionary<int, string>
+        {
+            { 0, "CSI Forever" },
+            { 1, "CSII Forever" },
+            { 2, "CSI Rogue" },
+            { 3, "Narval Souls" },
+        };
+
+
         public const string CSIForeverDescription =
             "Incarnez les Chosen Ones et parcourez le monde afin de faire le plein de butin et accessoirement empêcher l'effrondrement du monde !";
 
