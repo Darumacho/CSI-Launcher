@@ -39,6 +39,9 @@ namespace GameLauncher
             ApplyBackground(AppSettings.Background);
             foreach (ComboBoxItem item in BackgroundComboBox.Items)
                 if ((string)item.Tag == AppSettings.Background) { BackgroundComboBox.SelectedItem = item; break; }
+            RefreshAccountUI();
+            if (!string.IsNullOrEmpty(AppSettings.PlayerToken))
+                WriteTokenFiles(AppSettings.PlayerToken);
             LoadPatchNotes();
             LoadLauncherVersion();
         }
@@ -184,6 +187,8 @@ namespace GameLauncher
                 });
                 CSI_VersionText.Text = ver;
                 CsiStatus = LauncherStatus.ready;
+                if (!string.IsNullOrEmpty(AppSettings.PlayerToken))
+                    WriteTokenFiles(AppSettings.PlayerToken);
             }
             catch (Exception ex)
             {
@@ -326,6 +331,8 @@ namespace GameLauncher
                 });
                 CSII_VersionText.Text = ver;
                 CsiiStatus = LauncherStatus.ready;
+                if (!string.IsNullOrEmpty(AppSettings.PlayerToken))
+                    WriteTokenFiles(AppSettings.PlayerToken);
             }
             catch (Exception ex)
             {
@@ -387,7 +394,7 @@ namespace GameLauncher
             if (!Directory.Exists(_csrRoot)) Directory.CreateDirectory(_csrRoot);
             _csrVersionFile = Path.Combine(_csrRoot, "Version.txt");
             _csrZip         = Path.Combine(_csrRoot, "Build.zip");
-            _csrExe         = Path.Combine(_csrRoot, "Game.exe");
+            _csrExe         = Path.Combine(_csrRoot, "CSI Roguidoune", "Game.exe");
 
             if (!File.Exists(_csrExe))
                 CsrStatus = LauncherStatus.notInstalled;
@@ -463,6 +470,8 @@ namespace GameLauncher
                 });
                 CSR_VersionText.Text = ver;
                 CsrStatus = LauncherStatus.ready;
+                if (!string.IsNullOrEmpty(AppSettings.PlayerToken))
+                    WriteTokenFiles(AppSettings.PlayerToken);
             }
             catch (Exception ex)
             {
@@ -600,6 +609,8 @@ namespace GameLauncher
                 });
                 Narval_VersionText.Text = ver;
                 NarvalStatus = LauncherStatus.ready;
+                if (!string.IsNullOrEmpty(AppSettings.PlayerToken))
+                    WriteTokenFiles(AppSettings.PlayerToken);
             }
             catch (Exception ex)
             {
@@ -671,42 +682,45 @@ namespace GameLauncher
                 try
                 {
                     iconImage.Source = new BitmapImage(
-                        new Uri($"http://csi-world.xyz/api/icon/{rand.GameId}/{rand.Icon}"));
+                        new Uri($"https://csi-world.xyz/api/icon/{rand.GameId}/{rand.Icon}"));
                 }
                 catch { }
 
-                var statusesTask = ApiService.GetStatusesAsync();
-                var elementsTask = ApiService.GetElementsAsync();
-
                 propsPanel.Children.Clear();
-
-                switch (rand.Category)
+                try
                 {
-                    case "weapon":
-                        var weaponsTask = ApiService.GetWeaponsAsync();
-                        await Task.WhenAll(statusesTask, elementsTask, weaponsTask);
-                        var w = weaponsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
-                        if (w != null) PopulateWeapon(w, propsPanel,
-                            statusesTask.Result.ToDictionary(s => s.Id, s => s.Name),
-                            elementsTask.Result.ToDictionary(e => e.Id, e => e.Name));
-                        break;
-                    case "armor":
-                        var armorsTask = ApiService.GetArmorsAsync();
-                        await Task.WhenAll(elementsTask, armorsTask);
-                        var a = armorsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
-                        if (a != null) PopulateArmor(a, propsPanel,
-                            elementsTask.Result.ToDictionary(e => e.Id, e => e.Name));
-                        break;
-                    case "item":
-                        var itemsTask = ApiService.GetItemsAsync();
-                        await Task.WhenAll(statusesTask, itemsTask);
-                        var i = itemsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
-                        if (i != null) PopulateItem(i, propsPanel,
-                            statusesTask.Result.ToDictionary(s => s.Id, s => s.Name));
-                        break;
+                    var statusesTask = ApiService.GetStatusesAsync();
+                    var elementsTask = ApiService.GetElementsAsync();
+
+                    switch (rand.Category)
+                    {
+                        case "weapon":
+                            var weaponsTask = ApiService.GetWeaponsAsync();
+                            await Task.WhenAll(statusesTask, elementsTask, weaponsTask);
+                            var w = weaponsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
+                            if (w != null) PopulateWeapon(w, propsPanel,
+                                statusesTask.Result.ToDictionary(s => s.Id, s => s.Name),
+                                elementsTask.Result.ToDictionary(e => e.Id, e => e.Name));
+                            break;
+                        case "armor":
+                            var armorsTask = ApiService.GetArmorsAsync();
+                            await Task.WhenAll(elementsTask, armorsTask);
+                            var a = armorsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
+                            if (a != null) PopulateArmor(a, propsPanel,
+                                elementsTask.Result.ToDictionary(e => e.Id, e => e.Name));
+                            break;
+                        case "item":
+                            var itemsTask = ApiService.GetItemsAsync();
+                            await Task.WhenAll(statusesTask, itemsTask);
+                            var i = itemsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
+                            if (i != null) PopulateItem(i, propsPanel,
+                                statusesTask.Result.ToDictionary(s => s.Id, s => s.Name));
+                            break;
+                    }
                 }
+                catch { }
             }
-            catch { titleBlock.Text = "Indisponible"; }
+            catch { }
         }
 
         private void PopulateWeapon(Weapon w, StackPanel p,
@@ -716,13 +730,13 @@ namespace GameLauncher
             AddDesc(w.Description, p);
             AddProp("Type", w.WeaponTypeName, p);
             AddProp("Valeur", $"{w.Value} Dollawrs", p);
-            AddProp("Rareté", RarityLabel(w.Rarity), p);
+            if (w.Rarity > 0) AddProp("Rareté", RarityLabel(w.Rarity), p);
             if (w.ElementId.HasValue)
                 AddProp("Élément", elementNames.TryGetValue(w.ElementId.Value, out var en) ? en : w.ElementId.Value.ToString(), p);
-            if (w.BonusHit.HasValue) AddProp("Précision", $"+{w.BonusHit}%", p);
+            if (w.BonusHit.HasValue) AddProp("Coups supp.", $"+{w.BonusHit}", p);
             if (w.CriticalRate.HasValue) AddProp("Critique", $"{w.CriticalRate}%", p);
             if (w.NoSkills) AddProp("Compétences", "Aucune", p);
-            if (w.GrantsSkills?.Count > 0) AddProp("Enseigne", $"{w.GrantsSkills.Count} compétence(s)", p);
+            if (w.GrantsSkills?.Count > 0) AddProp("Octroie", $"{w.GrantsSkills.Count} compétence(s)", p);
             AddStatusList("Inflige", w.StatusInflicted, statusNames, p);
             AddStats(w.Stats, p);
             AddMultipliers(w.Multipliers, p);
@@ -735,9 +749,9 @@ namespace GameLauncher
             AddProp("Type", a.ArmorTypeName, p);
             //AddProp("Emplacement", a.Slot.ToString(), p);
             AddProp("Valeur", $"{a.Value} Dollawrs", p);
-            AddProp("Rareté", RarityLabel(a.Rarity), p);
+            if (a.Rarity > 0) AddProp("Rareté", RarityLabel(a.Rarity), p);
             if (a.CriticalRate.HasValue) AddProp("Critique", $"{a.CriticalRate}%", p);
-            if (a.GrantsSkills?.Count > 0) AddProp("Enseigne", $"{a.GrantsSkills.Count} compétence(s)", p);
+            if (a.GrantsSkills?.Count > 0) AddProp("Octroie", $"{a.GrantsSkills.Count} compétence(s)", p);
             AddElementalResistances(a.ElementalResistance, elementNames, p);
             AddStats(a.Stats, p);
             AddMultipliers(a.Multipliers, p);
@@ -754,7 +768,7 @@ namespace GameLauncher
             if (i.FlatDamage.HasValue && i.FlatDamage != 0) AddProp("Dégâts", i.FlatDamage.ToString(), p);
             if (!string.IsNullOrWhiteSpace(i.SpecialEffect)) AddProp("Effet", i.SpecialEffect, p);
             AddStatusImmunity(i.StatusImmunity, statusNames, p);
-            if (i.GrantsSkills?.Count > 0) AddProp("Enseigne", $"{i.GrantsSkills.Count} compétence(s)", p);
+            if (i.GrantsSkills?.Count > 0) AddProp("Octroie", $"{i.GrantsSkills.Count} compétence(s)", p);
             AddStats(i.Stats, p);
         }
 
@@ -1361,6 +1375,129 @@ namespace GameLauncher
 
         private void DiscordButton_Click(object sender, RoutedEventArgs e)
             => Process.Start(new ProcessStartInfo("https://discord.gg/Crs7zQbaqg") { UseShellExecute = true });
+
+        // ─── Account panel ───────────────────────────────────────────────────────
+
+        private void AccountButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool isOpen = AccountPanelBorder.Visibility == Visibility.Visible;
+            SettingsPanelBorder.Visibility = Visibility.Collapsed;
+            ContactPanelBorder.Visibility  = Visibility.Collapsed;
+            AccountPanelBorder.Visibility  = isOpen ? Visibility.Collapsed : Visibility.Visible;
+            SettingsColumn.Width = isOpen ? new GridLength(0) : new GridLength(300);
+        }
+
+        private void RefreshAccountUI()
+        {
+            bool loggedIn = !string.IsNullOrEmpty(AppSettings.PlayerToken);
+            AccountLoggedOutPanel.Visibility = loggedIn ? Visibility.Collapsed : Visibility.Visible;
+            AccountLoggedInPanel.Visibility  = loggedIn ? Visibility.Visible   : Visibility.Collapsed;
+            if (loggedIn)
+                AccountWelcomeText.Text = $"Connecté en tant que\n{AppSettings.PlayerUsername}";
+        }
+
+        private async void AccountLogin_Click(object sender, RoutedEventArgs e)
+        {
+            string username = AccountUsernameBox.Text.Trim();
+            string password = AccountPasswordBox.Password;
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                AccountStatusText.Text = "Remplis tous les champs.";
+                AccountStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
+                return;
+            }
+            AccountStatusText.Text = "Connexion...";
+            AccountStatusText.Foreground = new SolidColorBrush(Colors.White);
+            try
+            {
+                var result = await ApiService.LoginAsync(username, password);
+                AppSettings.PlayerToken    = result.Token;
+                AppSettings.PlayerUsername = result.Username;
+                WriteTokenFiles(result.Token);
+                AccountPasswordBox.Clear();
+                AccountStatusText.Text = "";
+                RefreshAccountUI();
+            }
+            catch
+            {
+                AccountStatusText.Text = "Identifiant ou mot de passe incorrect.";
+                AccountStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
+            }
+        }
+
+        private async void AccountRegister_Click(object sender, RoutedEventArgs e)
+        {
+            string username = AccountUsernameBox.Text.Trim();
+            string password = AccountPasswordBox.Password;
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                AccountStatusText.Text = "Remplis tous les champs.";
+                AccountStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
+                return;
+            }
+            AccountStatusText.Text = "Création du compte...";
+            AccountStatusText.Foreground = new SolidColorBrush(Colors.White);
+            try
+            {
+                var result = await ApiService.RegisterAsync(username, password);
+                AppSettings.PlayerToken    = result.Token;
+                AppSettings.PlayerUsername = result.Username;
+                WriteTokenFiles(result.Token);
+                AccountPasswordBox.Clear();
+                AccountStatusText.Text = "";
+                RefreshAccountUI();
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                AccountStatusText.Text = "Ce nom d'utilisateur est déjà pris.";
+                AccountStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity)
+            {
+                AccountStatusText.Text = "Nom invalide ou mot de passe trop court (8 caractères min).";
+                AccountStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
+            }
+            catch
+            {
+                AccountStatusText.Text = "Erreur lors de la création du compte.";
+                AccountStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
+            }
+        }
+
+        private void AccountLogout_Click(object sender, RoutedEventArgs e)
+        {
+            AppSettings.PlayerToken    = null;
+            AppSettings.PlayerUsername = null;
+            DeleteTokenFiles();
+            RefreshAccountUI();
+        }
+
+        private static string[] GameExePaths() => new[]
+        {
+            Path.Combine(AppSettings.InstallPath, "CSI Forever",  "CSIForever",   "Game.exe"),
+            Path.Combine(AppSettings.InstallPath, "CSII Forever",                 "Game.exe"),
+            Path.Combine(AppSettings.InstallPath, "CSI Rogue",   "CSI Roguidoune", "Game.exe"),
+            Path.Combine(AppSettings.InstallPath, "Narval Souls", "Narval Souls", "Game.exe"),
+        };
+
+        private static void WriteTokenFiles(string token)
+        {
+            foreach (string exe in GameExePaths())
+            {
+                if (!File.Exists(exe)) continue;
+                File.WriteAllText(Path.Combine(Path.GetDirectoryName(exe), "Token.ini"), $"TOKEN={token}");
+            }
+        }
+
+        private static void DeleteTokenFiles()
+        {
+            foreach (string exe in GameExePaths())
+            {
+                if (!File.Exists(exe)) continue;
+                string tokenFile = Path.Combine(Path.GetDirectoryName(exe), "Token.ini");
+                if (File.Exists(tokenFile)) File.Delete(tokenFile);
+            }
+        }
 
         // ─── Launcher patch notes ─────────────────────────────────────────────────
 

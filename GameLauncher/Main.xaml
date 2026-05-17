@@ -187,6 +187,17 @@
                             <ToolTip Style="{StaticResource GameTooltip}" Content="Contact"/>
                         </Button.ToolTip>
                     </Button>
+                    <Button Click="AccountButton_Click"
+                            Width="32" Height="32"
+                            Background="Transparent" Foreground="White" BorderBrush="Transparent" Padding="0" Margin="0,10,0,0"
+                            ToolTipService.Placement="Right" ToolTipService.InitialShowDelay="300">
+                        <Button.ToolTip>
+                            <ToolTip Style="{StaticResource GameTooltip}" Content="Compte joueur"/>
+                        </Button.ToolTip>
+                        <Viewbox Width="20" Height="20">
+                            <Path Fill="White" Data="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                        </Viewbox>
+                    </Button>
 
                     <Border Height="1" Background="#55FFFFFF" Margin="8,8,8,8"/>
 
@@ -287,6 +298,42 @@
                         FontSize="13" Background="#545ba8" Foreground="White" BorderBrush="Transparent"/>
                 <TextBlock x:Name="ContactStatusText" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                            FontSize="12" TextWrapping="Wrap" Margin="0,10,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Account panel -->
+        <Border x:Name="AccountPanelBorder" Grid.Row="0" Grid.RowSpan="4" Grid.Column="1" Background="#F01a1a2e" ClipToBounds="True" Visibility="Collapsed">
+            <StackPanel Margin="15,15,15,0">
+                <TextBlock Text="Compte joueur" FontFamily="/CSILauncher;component/fonts/#Eurocentric" FontSize="22" Foreground="White" Margin="0,0,0,20"/>
+
+                <!-- Logged-out form -->
+                <StackPanel x:Name="AccountLoggedOutPanel">
+                    <TextBlock Text="Identifiant :" FontFamily="/CSILauncher;component/fonts/#Eurocentric" FontSize="13" Foreground="#AAFFFFFF" Margin="0,0,0,6"/>
+                    <TextBox x:Name="AccountUsernameBox" FontSize="11" Padding="6"
+                             Background="#22FFFFFF" Foreground="White"
+                             BorderBrush="#545ba8" BorderThickness="1" CaretBrush="White"/>
+                    <TextBlock Text="Mot de passe :" FontFamily="/CSILauncher;component/fonts/#Eurocentric" FontSize="13" Foreground="#AAFFFFFF" Margin="0,10,0,6"/>
+                    <PasswordBox x:Name="AccountPasswordBox" FontSize="11" Padding="6"
+                                 Background="#22FFFFFF" Foreground="White"
+                                 BorderBrush="#545ba8" BorderThickness="1" CaretBrush="White"/>
+                    <Button Content="Se connecter" Click="AccountLogin_Click"
+                            Margin="0,14,0,0" Height="34" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                            FontSize="13" Background="#545ba8" Foreground="White" BorderBrush="Transparent"/>
+                    <Button Content="Créer un compte" Click="AccountRegister_Click"
+                            Margin="0,8,0,0" Height="34" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                            FontSize="13" Background="#333a6e" Foreground="White" BorderBrush="Transparent"/>
+                    <TextBlock x:Name="AccountStatusText" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                               FontSize="12" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                </StackPanel>
+
+                <!-- Logged-in view -->
+                <StackPanel x:Name="AccountLoggedInPanel" Visibility="Collapsed">
+                    <TextBlock x:Name="AccountWelcomeText" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                               FontSize="13" Foreground="White" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                    <Button Content="Se déconnecter" Click="AccountLogout_Click"
+                            Height="34" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
+                            FontSize="13" Background="#AA5c0000" Foreground="White" BorderBrush="Transparent"/>
+                </StackPanel>
             </StackPanel>
         </Border>
 

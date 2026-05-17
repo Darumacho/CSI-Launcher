@@ -132,6 +132,18 @@ namespace GameLauncher
             set => Set("auto_update", value ? "true" : "false");
         }
 
+        public static string PlayerToken
+        {
+            get => Values.TryGetValue("player_token", out string v) ? v : null;
+            set => Set("player_token", value ?? "");
+        }
+
+        public static string PlayerUsername
+        {
+            get => Values.TryGetValue("player_username", out string v) && !string.IsNullOrEmpty(v) ? v : null;
+            set => Set("player_username", value ?? "");
+        }
+
         public static string SmtpEmail => ReadSmtpConfig("email");
         public static string SmtpPassword => ReadSmtpConfig("password");
 

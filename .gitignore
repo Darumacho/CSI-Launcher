@@ -364,3 +364,4 @@ smtp.cfg
 GameLauncher\images\*.xcf
 /.claude/
 .claude/settings.local.json
+API.md

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -44,7 +45,8 @@ namespace GameLauncher
 
     class Drop
     {
-        public int Id { get; set; }
+        [JsonPropertyName("itemId")]
+        public int ItemId { get; set; }
         public string Type { get; set; }
         public double Probability { get; set; }
     }
@@ -107,7 +109,7 @@ namespace GameLauncher
         public string Name { get; set; }
         public string Description { get; set; }
         public int GameId { get; set; }
-        public string Icon { get; set; }
+        public int Icon { get; set; }
         public int Value { get; set; }
         public string Type { get; set; }
         public int ItemType { get; set; }
@@ -130,7 +132,7 @@ namespace GameLauncher
         public string Name { get; set; }
         public string Description { get; set; }
         public int GameId { get; set; }
-        public string Icon { get; set; }
+        public int Icon { get; set; }
         public int Value { get; set; }
         public int Rarity { get; set; }
         public int WeaponTypeId { get; set; }
@@ -155,7 +157,7 @@ namespace GameLauncher
         public string Name { get; set; }
         public string Description { get; set; }
         public int GameId { get; set; }
-        public string Icon { get; set; }
+        public int Icon { get; set; }
         public int Value { get; set; }
         public int Rarity { get; set; }
         public int ArmorTypeId { get; set; }
@@ -229,7 +231,7 @@ namespace GameLauncher
         public string Category { get; set; }
         public string Name { get; set; }
         public int GameId { get; set; }
-        public string Icon { get; set; }
+        public int Icon { get; set; }
     }
 
     // --- Statuses ---
@@ -239,7 +241,7 @@ namespace GameLauncher
         public int Id { get; set; }
         public string Name { get; set; }
         public int GameId { get; set; }
-        public string Icon { get; set; }
+        public int Icon { get; set; }
         public int RestrictionType { get; set; }
         public int? MinTurns { get; set; }
         public int? MaxTurns { get; set; }
@@ -251,5 +253,29 @@ namespace GameLauncher
         public Multipliers Multipliers { get; set; }
         public List<ElementalResistance> ElementalResistance { get; set; }
         public List<StatusEffect> StatusImmunity { get; set; }
+    }
+
+    // --- Player ---
+
+    class PlayerResponse
+    {
+        public string Username { get; set; }
+        public string Token { get; set; }
+    }
+
+    class Achievement
+    {
+        public int GameId { get; set; }
+        public int InternalId { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public DateTimeOffset UnlockedAt { get; set; }
+    }
+
+    class PlayerProfile
+    {
+        public string Username { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+        public List<Achievement> Achievements { get; set; }
     }
 }
