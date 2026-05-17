@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -120,6 +121,10 @@ namespace GameLauncher
                 CsiStatus = LauncherStatus.ready;
             }
             CSI_LoadPatchNotes();
+            _ = LoadItemOfTheDay(
+                CSI_ItemOfTheDayBox,
+                CSI_ItemOfTheDayTitle, CSI_ItemOfTheDayCategory,
+                CSI_ItemOfTheDayIcon,  CSI_ItemOfTheDayProps, 0);
         }
 
         private void CSI_CheckForUpdates()
@@ -258,6 +263,10 @@ namespace GameLauncher
                 CsiiStatus = LauncherStatus.ready;
             }
             CSII_LoadPatchNotes();
+            _ = LoadItemOfTheDay(
+                CSII_ItemOfTheDayBox,
+                CSII_ItemOfTheDayTitle, CSII_ItemOfTheDayCategory,
+                CSII_ItemOfTheDayIcon,  CSII_ItemOfTheDayProps, 1);
         }
 
         private void CSII_CheckForUpdates()
@@ -391,6 +400,10 @@ namespace GameLauncher
                 CsrStatus = LauncherStatus.ready;
             }
             CSR_LoadPatchNotes();
+            _ = LoadItemOfTheDay(
+                CSR_ItemOfTheDayBox,
+                CSR_ItemOfTheDayTitle, CSR_ItemOfTheDayCategory,
+                CSR_ItemOfTheDayIcon,  CSR_ItemOfTheDayProps, 2);
         }
 
         private void CSR_CheckForUpdates()
@@ -524,6 +537,10 @@ namespace GameLauncher
                 NarvalStatus = LauncherStatus.ready;
             }
             Narval_LoadPatchNotes();
+            _ = LoadItemOfTheDay(
+                Narval_ItemOfTheDayBox,
+                Narval_ItemOfTheDayTitle, Narval_ItemOfTheDayCategory,
+                Narval_ItemOfTheDayIcon,  Narval_ItemOfTheDayProps, 3);
         }
 
         private void Narval_CheckForUpdates()
@@ -620,6 +637,229 @@ namespace GameLauncher
             }
             catch { Narval_PatchNotesText.Text = "Notes de mise à jour indisponibles."; }
         }
+
+        // ─── Daily item box ───────────────────────────────────────────────────────
+
+        private async Task LoadItemOfTheDay(
+            Border container,
+            TextBlock titleBlock, TextBlock categoryBlock,
+            Image iconImage, StackPanel propsPanel,
+            int gameId)
+        {
+            try
+            {
+                RandomIcon rand = null;
+                for (int attempt = 0; attempt < 10; attempt++)
+                {
+                    var candidate = await ApiService.GetRandomIconAsync();
+                    if (candidate.Category is "weapon" or "armor" or "item" && candidate.GameId == gameId)
+                    { rand = candidate; break; }
+                }
+                if (rand == null) return;
+                container.Visibility = Visibility.Visible;
+
+                string categoryLabel = rand.Category switch
+                {
+                    "weapon" => "Arme du jour",
+                    "armor"  => "Armure du jour",
+                    _        => "Objet du jour"
+                };
+                GameConstants.GameNames.TryGetValue(rand.GameId, out string gameName);
+                titleBlock.Text    = rand.Name;
+                categoryBlock.Text = $"{categoryLabel} · {gameName ?? $"Jeu {rand.GameId}"}";
+
+                try
+                {
+                    iconImage.Source = new BitmapImage(
+                        new Uri($"http://csi-world.xyz/api/icon/{rand.GameId}/{rand.Icon}"));
+                }
+                catch { }
+
+                var statusesTask = ApiService.GetStatusesAsync();
+                var elementsTask = ApiService.GetElementsAsync();
+
+                propsPanel.Children.Clear();
+
+                switch (rand.Category)
+                {
+                    case "weapon":
+                        var weaponsTask = ApiService.GetWeaponsAsync();
+                        await Task.WhenAll(statusesTask, elementsTask, weaponsTask);
+                        var w = weaponsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
+                        if (w != null) PopulateWeapon(w, propsPanel,
+                            statusesTask.Result.ToDictionary(s => s.Id, s => s.Name),
+                            elementsTask.Result.ToDictionary(e => e.Id, e => e.Name));
+                        break;
+                    case "armor":
+                        var armorsTask = ApiService.GetArmorsAsync();
+                        await Task.WhenAll(elementsTask, armorsTask);
+                        var a = armorsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
+                        if (a != null) PopulateArmor(a, propsPanel,
+                            elementsTask.Result.ToDictionary(e => e.Id, e => e.Name));
+                        break;
+                    case "item":
+                        var itemsTask = ApiService.GetItemsAsync();
+                        await Task.WhenAll(statusesTask, itemsTask);
+                        var i = itemsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
+                        if (i != null) PopulateItem(i, propsPanel,
+                            statusesTask.Result.ToDictionary(s => s.Id, s => s.Name));
+                        break;
+                }
+            }
+            catch { titleBlock.Text = "Indisponible"; }
+        }
+
+        private void PopulateWeapon(Weapon w, StackPanel p,
+            Dictionary<int, string> statusNames,
+            Dictionary<int, string> elementNames)
+        {
+            AddDesc(w.Description, p);
+            AddProp("Type", w.WeaponTypeName, p);
+            AddProp("Valeur", $"{w.Value} Dollawrs", p);
+            AddProp("Rareté", RarityLabel(w.Rarity), p);
+            if (w.ElementId.HasValue)
+                AddProp("Élément", elementNames.TryGetValue(w.ElementId.Value, out var en) ? en : w.ElementId.Value.ToString(), p);
+            if (w.BonusHit.HasValue) AddProp("Précision", $"+{w.BonusHit}%", p);
+            if (w.CriticalRate.HasValue) AddProp("Critique", $"{w.CriticalRate}%", p);
+            if (w.NoSkills) AddProp("Compétences", "Aucune", p);
+            if (w.GrantsSkills?.Count > 0) AddProp("Enseigne", $"{w.GrantsSkills.Count} compétence(s)", p);
+            AddStatusList("Inflige", w.StatusInflicted, statusNames, p);
+            AddStats(w.Stats, p);
+            AddMultipliers(w.Multipliers, p);
+        }
+
+        private void PopulateArmor(Armor a, StackPanel p,
+            Dictionary<int, string> elementNames)
+        {
+            AddDesc(a.Description, p);
+            AddProp("Type", a.ArmorTypeName, p);
+            //AddProp("Emplacement", a.Slot.ToString(), p);
+            AddProp("Valeur", $"{a.Value} Dollawrs", p);
+            AddProp("Rareté", RarityLabel(a.Rarity), p);
+            if (a.CriticalRate.HasValue) AddProp("Critique", $"{a.CriticalRate}%", p);
+            if (a.GrantsSkills?.Count > 0) AddProp("Enseigne", $"{a.GrantsSkills.Count} compétence(s)", p);
+            AddElementalResistances(a.ElementalResistance, elementNames, p);
+            AddStats(a.Stats, p);
+            AddMultipliers(a.Multipliers, p);
+        }
+
+        private void PopulateItem(Item i, StackPanel p,
+            Dictionary<int, string> statusNames)
+        {
+            AddDesc(i.Description, p);
+            AddProp("Valeur", $"{i.Value} Dollawrs", p);
+            if (i.IsKeyItem) AddProp("Objet clé", "Oui", p);
+            if (i.IsMaterial) AddProp("Matériau", "Oui", p);
+            if (i.FlatHeal.HasValue && i.FlatHeal != 0) AddProp("Soin PV", $"+{i.FlatHeal}", p);
+            if (i.FlatDamage.HasValue && i.FlatDamage != 0) AddProp("Dégâts", i.FlatDamage.ToString(), p);
+            if (!string.IsNullOrWhiteSpace(i.SpecialEffect)) AddProp("Effet", i.SpecialEffect, p);
+            AddStatusImmunity(i.StatusImmunity, statusNames, p);
+            if (i.GrantsSkills?.Count > 0) AddProp("Enseigne", $"{i.GrantsSkills.Count} compétence(s)", p);
+            AddStats(i.Stats, p);
+        }
+
+        private static void AddDesc(string desc, StackPanel p)
+        {
+            if (string.IsNullOrWhiteSpace(desc)) return;
+            p.Children.Add(new TextBlock
+            {
+                FontFamily   = new FontFamily("Optimus"),
+                FontSize     = 10,
+                FontStyle    = FontStyles.Italic,
+                Foreground   = new SolidColorBrush(Color.FromArgb(0xCC, 0xFF, 0xFF, 0xFF)),
+                TextWrapping = TextWrapping.Wrap,
+                Text         = desc,
+                Margin       = new Thickness(0, 0, 0, 5)
+            });
+        }
+
+        private static void AddProp(string label, string value, StackPanel p)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return;
+            p.Children.Add(new TextBlock
+            {
+                FontFamily   = new FontFamily("Optimus"),
+                FontSize     = 11,
+                Foreground   = Brushes.White,
+                TextWrapping = TextWrapping.Wrap,
+                Text         = $"{label}: {value}",
+                Margin       = new Thickness(0, 1, 0, 1)
+            });
+        }
+
+        private static void AddStats(Stats s, StackPanel p)
+        {
+            if (s == null) return;
+            if (s.PvMax != 0)   AddProp("PV",  s.PvMax.ToString(),   p);
+            if (s.EgMax != 0)   AddProp("EG",  s.EgMax.ToString(),   p);
+            if (s.Attaque != 0) AddProp("ATQ", s.Attaque.ToString(), p);
+            if (s.Defense != 0) AddProp("DEF", s.Defense.ToString(), p);
+            if (s.Arcane != 0)  AddProp("ARC", s.Arcane.ToString(),  p);
+            if (s.Sagesse != 0) AddProp("SAG", s.Sagesse.ToString(), p);
+            if (s.Vitesse != 0) AddProp("VIT", s.Vitesse.ToString(), p);
+            if (s.Finesse != 0) AddProp("FIN", s.Finesse.ToString(), p);
+        }
+
+        private static void AddMultipliers(Multipliers m, StackPanel p)
+        {
+            if (m == null) return;
+            if (m.PvMax.HasValue)   AddProp("PV ×",  m.PvMax.Value.ToString("0.##"),   p);
+            if (m.EgMax.HasValue)   AddProp("EG ×",  m.EgMax.Value.ToString("0.##"),   p);
+            if (m.Attaque.HasValue) AddProp("ATQ ×", m.Attaque.Value.ToString("0.##"), p);
+            if (m.Defense.HasValue) AddProp("DEF ×", m.Defense.Value.ToString("0.##"), p);
+            if (m.Arcane.HasValue)  AddProp("ARC ×", m.Arcane.Value.ToString("0.##"),  p);
+            if (m.Sagesse.HasValue) AddProp("SAG ×", m.Sagesse.Value.ToString("0.##"), p);
+            if (m.Vitesse.HasValue) AddProp("VIT ×", m.Vitesse.Value.ToString("0.##"), p);
+            if (m.Finesse.HasValue) AddProp("FIN ×", m.Finesse.Value.ToString("0.##"), p);
+        }
+
+        private static void AddStatusList(string label, List<StatusEffect> effects,
+            Dictionary<int, string> statusNames, StackPanel p)
+        {
+            if (effects == null || effects.Count == 0) return;
+            foreach (var e in effects)
+            {
+                statusNames.TryGetValue(e.StatusId, out string name);
+                string display = name ?? $"#{e.StatusId}";
+                AddProp(label, e.Probability < 100 ? $"{display} ({e.Probability}%)" : display, p);
+            }
+        }
+
+        private static void AddStatusImmunity(List<StatusEffect> effects,
+            Dictionary<int, string> statusNames, StackPanel p)
+        {
+            if (effects == null || effects.Count == 0) return;
+            foreach (var e in effects)
+            {
+                statusNames.TryGetValue(e.StatusId, out string name);
+                AddProp("Immunité", name ?? $"#{e.StatusId}", p);
+            }
+        }
+
+        private static void AddElementalResistances(List<ElementalResistance> resistances,
+            Dictionary<int, string> elementNames, StackPanel p)
+        {
+            if (resistances == null || resistances.Count == 0) return;
+            foreach (var r in resistances)
+            {
+                elementNames.TryGetValue(r.ElementId, out string name);
+                AddProp("Résistance", $"{name ?? $"#{r.ElementId}"} ×{r.Multiplier:0.##}", p);
+            }
+        }
+
+        private static string RarityLabel(int rarity) => rarity switch
+        {
+            1 => "Ordinaire",
+            2 => "Peu commun",
+            3 => "Rare",
+            4 => "Épique",
+            5 => "Légendaire",
+            6 => "Unique",
+            7 => "Héroïque",
+            8 => "Séraphin",
+            9 => "Nacré",
+            _ => rarity.ToString()
+        };
 
         // ─── Launcher update ─────────────────────────────────────────────────────
 
@@ -1137,6 +1377,15 @@ namespace GameLauncher
                 PatchNotesText.Text = "Notes de mise à jour indisponibles.";
             }
         }
+    }
+
+    enum LauncherStatus
+    {
+        ready,
+        failed,
+        downloadingGame,
+        downloadingUpdate,
+        notInstalled
     }
 
     struct GameVersion

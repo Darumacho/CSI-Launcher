@@ -42,6 +42,8 @@ namespace GameLauncher
         public static Task<List<Status>>    GetStatusesAsync()   => GetAsync<List<Status>>($"{BaseUrl}/statuses");
         public static Task<Status>          GetStatusAsync(int id) => GetAsync<Status>($"{BaseUrl}/statuses/{id}");
 
+        public static Task<List<Element>>   GetElementsAsync()   => GetAsync<List<Element>>($"{BaseUrl}/elements");
+
         public static Task<RandomIcon>      GetRandomIconAsync() => GetAsync<RandomIcon>($"{BaseUrl}/icons/random");
     }
 }

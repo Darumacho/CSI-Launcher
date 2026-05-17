@@ -211,6 +211,17 @@ namespace GameLauncher
         public Stats Stats { get; set; }
     }
 
+    // --- Elements ---
+
+    class Element
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public bool Csi1Exclusive { get; set; }
+        public bool Csi2Exclusive { get; set; }
+        public bool CsiRogueExclusive { get; set; }
+    }
+
     // --- Icons ---
 
     class RandomIcon

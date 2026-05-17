@@ -357,6 +357,28 @@
                         </Viewbox>
                     </Button>
                 </StackPanel>
+                <Border x:Name="CSI_ItemOfTheDayBox" Background="#BB000000" CornerRadius="6"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Width="250" MaxHeight="360" Margin="0,54,10,0" Visibility="Collapsed">
+                    <DockPanel Margin="8,6,8,6">
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,3">
+                            <Image x:Name="CSI_ItemOfTheDayIcon" Width="32" Height="32"
+                                   DockPanel.Dock="Left" Margin="0,0,8,0"
+                                   RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                   VerticalAlignment="Top"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock x:Name="CSI_ItemOfTheDayTitle" FontFamily="Optimus" FontSize="13"
+                                           Foreground="White" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="CSI_ItemOfTheDayCategory" FontFamily="Optimus" FontSize="10"
+                                           Foreground="#77FFFFFF" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Rectangle DockPanel.Dock="Top" Fill="#33FFFFFF" Height="1" Margin="0,4,0,5"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel x:Name="CSI_ItemOfTheDayProps"/>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
                 <TextBlock x:Name="CSI_VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right"
                            FontSize="22" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                            Foreground="White" Margin="0,0,5,5">
@@ -430,6 +452,28 @@
                         </Viewbox>
                     </Button>
                 </StackPanel>
+                <Border x:Name="CSII_ItemOfTheDayBox" Background="#BB000000" CornerRadius="6"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Width="250" MaxHeight="360" Margin="0,54,10,0" Visibility="Collapsed">
+                    <DockPanel Margin="8,6,8,6">
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,3">
+                            <Image x:Name="CSII_ItemOfTheDayIcon" Width="32" Height="32"
+                                   DockPanel.Dock="Left" Margin="0,0,8,0"
+                                   RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                   VerticalAlignment="Top"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock x:Name="CSII_ItemOfTheDayTitle" FontFamily="Optimus" FontSize="13"
+                                           Foreground="White" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="CSII_ItemOfTheDayCategory" FontFamily="Optimus" FontSize="10"
+                                           Foreground="#77FFFFFF" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Rectangle DockPanel.Dock="Top" Fill="#33FFFFFF" Height="1" Margin="0,4,0,5"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel x:Name="CSII_ItemOfTheDayProps"/>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
                 <TextBlock x:Name="CSII_VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right"
                            FontSize="22" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                            Foreground="White" Margin="0,0,5,5">
@@ -503,6 +547,28 @@
                         </Viewbox>
                     </Button>
                 </StackPanel>
+                <Border x:Name="CSR_ItemOfTheDayBox" Background="#BB000000" CornerRadius="6"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Width="250" MaxHeight="360" Margin="0,54,10,0" Visibility="Collapsed">
+                    <DockPanel Margin="8,6,8,6">
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,3">
+                            <Image x:Name="CSR_ItemOfTheDayIcon" Width="32" Height="32"
+                                   DockPanel.Dock="Left" Margin="0,0,8,0"
+                                   RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                   VerticalAlignment="Top"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock x:Name="CSR_ItemOfTheDayTitle" FontFamily="Optimus" FontSize="13"
+                                           Foreground="White" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="CSR_ItemOfTheDayCategory" FontFamily="Optimus" FontSize="10"
+                                           Foreground="#77FFFFFF" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Rectangle DockPanel.Dock="Top" Fill="#33FFFFFF" Height="1" Margin="0,4,0,5"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel x:Name="CSR_ItemOfTheDayProps"/>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
                 <TextBlock x:Name="CSR_VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right"
                            FontSize="22" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                            Foreground="White" Margin="0,0,5,5">
@@ -576,6 +642,28 @@
                         </Viewbox>
                     </Button>
                 </StackPanel>
+                <Border x:Name="Narval_ItemOfTheDayBox" Background="#BB000000" CornerRadius="6"
+                        HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Width="250" MaxHeight="360" Margin="0,54,10,0" Visibility="Collapsed">
+                    <DockPanel Margin="8,6,8,6">
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,3">
+                            <Image x:Name="Narval_ItemOfTheDayIcon" Width="32" Height="32"
+                                   DockPanel.Dock="Left" Margin="0,0,8,0"
+                                   RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                   VerticalAlignment="Top"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock x:Name="Narval_ItemOfTheDayTitle" FontFamily="Optimus" FontSize="13"
+                                           Foreground="White" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="Narval_ItemOfTheDayCategory" FontFamily="Optimus" FontSize="10"
+                                           Foreground="#77FFFFFF" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </DockPanel>
+                        <Rectangle DockPanel.Dock="Top" Fill="#33FFFFFF" Height="1" Margin="0,4,0,5"/>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel x:Name="Narval_ItemOfTheDayProps"/>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
                 <TextBlock x:Name="Narval_VersionText" VerticalAlignment="Bottom" HorizontalAlignment="Right"
                            FontSize="22" FontFamily="/CSILauncher;component/fonts/#Pixel Operator"
                            Foreground="White" Margin="0,0,5,5">
