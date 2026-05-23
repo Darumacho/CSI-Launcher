@@ -45,8 +45,7 @@ namespace GameLauncher
 
     class Drop
     {
-        [JsonPropertyName("itemId")]
-        public int ItemId { get; set; }
+        public int Id { get; set; }
         public string Type { get; set; }
         public double Probability { get; set; }
     }
@@ -257,6 +256,37 @@ namespace GameLauncher
 
     // --- Player ---
 
+    class WeaponType
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public bool Csi1Exclusive { get; set; }
+        public bool Csi2Exclusive { get; set; }
+        public bool CsiRogueExclusive { get; set; }
+    }
+
+    class ArmorType
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public bool Csi1Exclusive { get; set; }
+        public bool Csi2Exclusive { get; set; }
+        public bool CsiRogueExclusive { get; set; }
+    }
+
+    class CharacterRole
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int Icon { get; set; }
+    }
+
+    class UnlockAchievementResponse
+    {
+        public bool Success { get; set; }
+        public bool AlreadyUnlocked { get; set; }
+    }
+
     class PlayerResponse
     {
         public string Username { get; set; }
@@ -269,6 +299,7 @@ namespace GameLauncher
         public int InternalId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public int PointsValue { get; set; }
         public DateTimeOffset UnlockedAt { get; set; }
     }
 
@@ -276,6 +307,11 @@ namespace GameLauncher
     {
         public string Username { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
+        public string Description { get; set; }
+        public string AvatarUrl { get; set; }
+        public string Email { get; set; }
+        public int? Money { get; set; }
+        public int? PremiumMoney { get; set; }
         public List<Achievement> Achievements { get; set; }
     }
 }

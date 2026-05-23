@@ -30,6 +30,8 @@
     <None Remove="images\CSR_Button.png" />
     <None Remove="images\CSR_Title.png" />
     <None Remove="images\Icon.ico" />
+    <None Remove="images\money.png" />
+    <None Remove="images\premium_money.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,6 +54,8 @@
     <Resource Include="images\CSR_Button.png" />
     <Resource Include="images\CSR_Title.png" />
     <Resource Include="images\Icon.ico" />
+    <Resource Include="images\money.png" />
+    <Resource Include="images\premium_money.png" />
   </ItemGroup>
 
   <ItemGroup>

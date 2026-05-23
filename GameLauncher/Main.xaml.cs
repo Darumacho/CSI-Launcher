@@ -41,7 +41,10 @@ namespace GameLauncher
                 if ((string)item.Tag == AppSettings.Background) { BackgroundComboBox.SelectedItem = item; break; }
             RefreshAccountUI();
             if (!string.IsNullOrEmpty(AppSettings.PlayerToken))
+            {
                 WriteTokenFiles(AppSettings.PlayerToken);
+                _ = FetchAndStoreProfile();
+            }
             LoadPatchNotes();
             LoadLauncherVersion();
         }
@@ -1392,8 +1395,72 @@ namespace GameLauncher
             bool loggedIn = !string.IsNullOrEmpty(AppSettings.PlayerToken);
             AccountLoggedOutPanel.Visibility = loggedIn ? Visibility.Collapsed : Visibility.Visible;
             AccountLoggedInPanel.Visibility  = loggedIn ? Visibility.Visible   : Visibility.Collapsed;
-            if (loggedIn)
-                AccountWelcomeText.Text = $"Connecté en tant que\n{AppSettings.PlayerUsername}";
+            if (!loggedIn) return;
+
+            AccountWelcomeText.Text = AppSettings.PlayerUsername;
+
+            int? achCount = AppSettings.PlayerAchievementCount;
+            int? achScore = AppSettings.PlayerAchievementScore;
+            if (achCount.HasValue)
+            {
+                string label = achCount.Value == 1 ? "succès" : "succès";
+                AccountAchievementText.Text = $"{achCount} {label} · {achScore ?? 0} G";
+                AccountAchievementBadge.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                AccountAchievementBadge.Visibility = Visibility.Collapsed;
+            }
+
+            string avatarUrl = AppSettings.PlayerAvatarUrl;
+            if (!string.IsNullOrEmpty(avatarUrl))
+                try { AccountAvatarImage.Source = new BitmapImage(new Uri(avatarUrl)); } catch { }
+            else
+                AccountAvatarImage.Source = null;
+
+            bool hasMoney = AppSettings.PlayerMoney.HasValue || AppSettings.PlayerPremiumMoney.HasValue;
+            AccountMoneyPanel.Visibility = hasMoney ? Visibility.Visible : Visibility.Collapsed;
+            if (hasMoney)
+            {
+                AccountMoneyText.Text        = $"{AppSettings.PlayerMoney ?? 0} Dollawrs";
+                AccountPremiumMoneyText.Text = $"{AppSettings.PlayerPremiumMoney ?? 0} Crédits MasterMoney";
+            }
+
+            string desc = AppSettings.PlayerDescription;
+            AccountDescriptionPanel.Visibility = !string.IsNullOrEmpty(desc) ? Visibility.Visible : Visibility.Collapsed;
+            AccountDescriptionText.Text = desc ?? "";
+
+            /*string email = AppSettings.PlayerEmail;
+            AccountEmailText.Visibility = !string.IsNullOrEmpty(email) ? Visibility.Visible : Visibility.Collapsed;
+            AccountEmailText.Text = email ?? "";*/
+        }
+
+        private async Task FetchAndStoreProfile()
+        {
+            try
+            {
+                var meTask     = ApiService.GetMyProfileAsync(AppSettings.PlayerToken);
+                var pubTask    = ApiService.GetPlayerAsync(AppSettings.PlayerUsername);
+                await Task.WhenAll(meTask, pubTask);
+
+                var me  = meTask.Result;
+                var pub = pubTask.Result;
+
+                AppSettings.PlayerAvatarUrl    = me.AvatarUrl;
+                AppSettings.PlayerEmail        = me.Email;
+                AppSettings.PlayerDescription  = me.Description;
+                AppSettings.PlayerMoney        = me.Money;
+                AppSettings.PlayerPremiumMoney = me.PremiumMoney;
+
+                var achievements = pub.Achievements;
+                AppSettings.PlayerAchievementCount = achievements?.Count;
+                AppSettings.PlayerAchievementScore = achievements?.Sum(a => a.PointsValue);
+
+                RefreshAccountUI();
+                if (!string.IsNullOrEmpty(me.Email))
+                    ContactEmailBox.Text = me.Email;
+            }
+            catch { }
         }
 
         private async void AccountLogin_Click(object sender, RoutedEventArgs e)
@@ -1417,6 +1484,7 @@ namespace GameLauncher
                 AccountPasswordBox.Clear();
                 AccountStatusText.Text = "";
                 RefreshAccountUI();
+                _ = FetchAndStoreProfile();
             }
             catch
             {
@@ -1446,6 +1514,7 @@ namespace GameLauncher
                 AccountPasswordBox.Clear();
                 AccountStatusText.Text = "";
                 RefreshAccountUI();
+                _ = FetchAndStoreProfile();
             }
             catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
@@ -1466,8 +1535,15 @@ namespace GameLauncher
 
         private void AccountLogout_Click(object sender, RoutedEventArgs e)
         {
-            AppSettings.PlayerToken    = null;
-            AppSettings.PlayerUsername = null;
+            AppSettings.PlayerToken        = null;
+            AppSettings.PlayerUsername     = null;
+            AppSettings.PlayerAvatarUrl    = null;
+            AppSettings.PlayerEmail        = null;
+            AppSettings.PlayerDescription  = null;
+            AppSettings.PlayerMoney             = null;
+            AppSettings.PlayerPremiumMoney      = null;
+            AppSettings.PlayerAchievementCount  = null;
+            AppSettings.PlayerAchievementScore  = null;
             DeleteTokenFiles();
             RefreshAccountUI();
         }

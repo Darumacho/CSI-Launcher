@@ -51,7 +51,11 @@ namespace GameLauncher
         public static Task<List<Status>>    GetStatusesAsync()         => GetAsync<List<Status>>($"{BaseUrl}/statuses");
         public static Task<Status>          GetStatusAsync(int id)     => GetAsync<Status>($"{BaseUrl}/statuses/{id}");
 
-        public static Task<List<Element>>   GetElementsAsync()         => GetAsync<List<Element>>($"{BaseUrl}/elements");
+        public static Task<List<Element>>      GetElementsAsync()          => GetAsync<List<Element>>($"{BaseUrl}/elements");
+
+        public static Task<List<WeaponType>>    GetWeaponTypesAsync()       => GetAsync<List<WeaponType>>($"{BaseUrl}/weapon-types");
+        public static Task<List<ArmorType>>     GetArmorTypesAsync()        => GetAsync<List<ArmorType>>($"{BaseUrl}/armor-types");
+        public static Task<List<CharacterRole>> GetCharacterRolesAsync()    => GetAsync<List<CharacterRole>>($"{BaseUrl}/character-roles");
 
         public static Task<RandomIcon>      GetRandomIconAsync()       => GetAsync<RandomIcon>($"{BaseUrl}/icons/random");
 
@@ -61,7 +65,19 @@ namespace GameLauncher
         public static Task<PlayerResponse>  RegisterAsync(string username, string password)
             => PostAsync<PlayerResponse>($"{BaseUrl}/player/register", new { username, password });
 
-        public static Task<PlayerProfile>   GetPlayerAsync(string username)
+        public static Task<PlayerProfile>  GetPlayerAsync(string username)
             => GetAsync<PlayerProfile>($"{BaseUrl}/player/{username}");
+
+        public static async Task<PlayerProfile> GetMyProfileAsync(string token)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{BaseUrl}/player/me");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await _http.SendAsync(request);
+            string json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<PlayerProfile>(json, _jsonOptions);
+        }
+
+        public static Task<UnlockAchievementResponse> UnlockAchievementAsync(string token, int gameId, int achievementId)
+            => PostAsync<UnlockAchievementResponse>($"{BaseUrl}/achievements/unlock", new { token, gameId, achievementId });
     }
 }

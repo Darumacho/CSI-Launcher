@@ -144,6 +144,48 @@ namespace GameLauncher
             set => Set("player_username", value ?? "");
         }
 
+        public static string PlayerEmail
+        {
+            get => Values.TryGetValue("player_email", out string v) && !string.IsNullOrEmpty(v) ? v : null;
+            set => Set("player_email", value ?? "");
+        }
+
+        public static string PlayerAvatarUrl
+        {
+            get => Values.TryGetValue("player_avatar_url", out string v) && !string.IsNullOrEmpty(v) ? v : null;
+            set => Set("player_avatar_url", value ?? "");
+        }
+
+        public static string PlayerDescription
+        {
+            get => Values.TryGetValue("player_description", out string v) && !string.IsNullOrEmpty(v) ? v : null;
+            set => Set("player_description", value ?? "");
+        }
+
+        public static int? PlayerMoney
+        {
+            get => Values.TryGetValue("player_money", out string v) && int.TryParse(v, out int n) ? n : null;
+            set => Set("player_money", value?.ToString() ?? "");
+        }
+
+        public static int? PlayerPremiumMoney
+        {
+            get => Values.TryGetValue("player_premium_money", out string v) && int.TryParse(v, out int n) ? n : null;
+            set => Set("player_premium_money", value?.ToString() ?? "");
+        }
+
+        public static int? PlayerAchievementCount
+        {
+            get => Values.TryGetValue("player_achievement_count", out string v) && int.TryParse(v, out int n) ? n : null;
+            set => Set("player_achievement_count", value?.ToString() ?? "");
+        }
+
+        public static int? PlayerAchievementScore
+        {
+            get => Values.TryGetValue("player_achievement_score", out string v) && int.TryParse(v, out int n) ? n : null;
+            set => Set("player_achievement_score", value?.ToString() ?? "");
+        }
+
         public static string SmtpEmail => ReadSmtpConfig("email");
         public static string SmtpPassword => ReadSmtpConfig("password");
 
