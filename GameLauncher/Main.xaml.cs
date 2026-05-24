@@ -58,6 +58,10 @@ namespace GameLauncher
             CSIIPanel.Visibility   = name == "CSII"   ? Visibility.Visible : Visibility.Collapsed;
             CSRPanel.Visibility    = name == "CSR"    ? Visibility.Visible : Visibility.Collapsed;
             NarvalPanel.Visibility = name == "Narval" ? Visibility.Visible : Visibility.Collapsed;
+            AccountPanelBorder.Visibility  = Visibility.Collapsed;
+            SettingsPanelBorder.Visibility = Visibility.Collapsed;
+            ContactPanelBorder.Visibility  = Visibility.Collapsed;
+            SettingsColumn.Width = new GridLength(0);
         }
 
         private void SidebarHome_Click(object sender, RoutedEventArgs e) => ShowPanel("Home");
@@ -1000,7 +1004,8 @@ namespace GameLauncher
         private void SettingsToggle_Click(object sender, RoutedEventArgs e)
         {
             bool isOpen = SettingsPanelBorder.Visibility == Visibility.Visible;
-            ContactPanelBorder.Visibility = Visibility.Collapsed;
+            ContactPanelBorder.Visibility  = Visibility.Collapsed;
+            AccountPanelBorder.Visibility  = Visibility.Collapsed;
             SettingsPanelBorder.Visibility = isOpen ? Visibility.Collapsed : Visibility.Visible;
             SettingsColumn.Width = isOpen ? new GridLength(0) : new GridLength(300);
         }
@@ -1009,7 +1014,8 @@ namespace GameLauncher
         {
             bool isOpen = ContactPanelBorder.Visibility == Visibility.Visible;
             SettingsPanelBorder.Visibility = Visibility.Collapsed;
-            ContactPanelBorder.Visibility = isOpen ? Visibility.Collapsed : Visibility.Visible;
+            AccountPanelBorder.Visibility  = Visibility.Collapsed;
+            ContactPanelBorder.Visibility  = isOpen ? Visibility.Collapsed : Visibility.Visible;
             SettingsColumn.Width = isOpen ? new GridLength(0) : new GridLength(300);
         }
 
@@ -1371,7 +1377,7 @@ namespace GameLauncher
         // ─── External links ───────────────────────────────────────────────────────
 
         private void WebsiteButton_Click(object sender, RoutedEventArgs e)
-            => Process.Start(new ProcessStartInfo("http://csi-world.xyz") { UseShellExecute = true });
+            => Process.Start(new ProcessStartInfo("https://csi-world.xyz") { UseShellExecute = true });
 
         private void GithubButton_Click(object sender, RoutedEventArgs e)
             => Process.Start(new ProcessStartInfo("https://github.com/Darumacho") { UseShellExecute = true });
@@ -1469,11 +1475,11 @@ namespace GameLauncher
             string password = AccountPasswordBox.Password;
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                AccountStatusText.Text = "Remplis tous les champs.";
+                AccountStatusText.Text = "Remplis tous les champs, guidoune.";
                 AccountStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
                 return;
             }
-            AccountStatusText.Text = "Connexion...";
+            AccountStatusText.Text = "Connexion en cours";
             AccountStatusText.Foreground = new SolidColorBrush(Colors.White);
             try
             {
@@ -1493,44 +1499,9 @@ namespace GameLauncher
             }
         }
 
-        private async void AccountRegister_Click(object sender, RoutedEventArgs e)
+        private void AccountRegister_Click(object sender, RoutedEventArgs e)
         {
-            string username = AccountUsernameBox.Text.Trim();
-            string password = AccountPasswordBox.Password;
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            {
-                AccountStatusText.Text = "Remplis tous les champs.";
-                AccountStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
-                return;
-            }
-            AccountStatusText.Text = "Création du compte...";
-            AccountStatusText.Foreground = new SolidColorBrush(Colors.White);
-            try
-            {
-                var result = await ApiService.RegisterAsync(username, password);
-                AppSettings.PlayerToken    = result.Token;
-                AppSettings.PlayerUsername = result.Username;
-                WriteTokenFiles(result.Token);
-                AccountPasswordBox.Clear();
-                AccountStatusText.Text = "";
-                RefreshAccountUI();
-                _ = FetchAndStoreProfile();
-            }
-            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
-            {
-                AccountStatusText.Text = "Ce nom d'utilisateur est déjà pris.";
-                AccountStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
-            }
-            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity)
-            {
-                AccountStatusText.Text = "Nom invalide ou mot de passe trop court (8 caractères min).";
-                AccountStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
-            }
-            catch
-            {
-                AccountStatusText.Text = "Erreur lors de la création du compte.";
-                AccountStatusText.Foreground = new SolidColorBrush(Colors.OrangeRed);
-            }
+            Process.Start(new ProcessStartInfo("https://csi-world.xyz/register") { UseShellExecute = true });
         }
 
         private void AccountLogout_Click(object sender, RoutedEventArgs e)
@@ -1605,31 +1576,30 @@ namespace GameLauncher
     {
         internal static GameVersion Zero = new GameVersion(0, 0, 0);
 
+        private static readonly char[] _versionSeparators = ['.', ','];
         private short major, minor, subMinor;
+        private readonly string _raw;
 
         internal GameVersion(short major, short minor, short subMinor)
         {
             this.major    = major;
             this.minor    = minor;
             this.subMinor = subMinor;
+            _raw = null;
         }
 
         internal GameVersion(string version)
         {
-            string[] parts = version.Trim().Split('.');
-            if (parts.Length != 3)
-            {
-                major = minor = subMinor = 0;
-                return;
-            }
-            major    = short.Parse(parts[0]);
-            minor    = short.Parse(parts[1]);
-            subMinor = short.Parse(parts[2]);
+            _raw = version.Trim();
+            string[] parts = _raw.Split(_versionSeparators);
+            major    = parts.Length > 0 && short.TryParse(parts[0], out short ma) ? ma : (short)0;
+            minor    = parts.Length > 1 && short.TryParse(parts[1], out short mi) ? mi : (short)0;
+            subMinor = parts.Length > 2 && short.TryParse(parts[2], out short sm) ? sm : (short)0;
         }
 
         internal bool IsDifferentThan(GameVersion other)
             => major != other.major || minor != other.minor || subMinor != other.subMinor;
 
-        public override string ToString() => $"{major}.{minor}.{subMinor}";
+        public override string ToString() => _raw ?? $"{major}.{minor}.{subMinor}";
     }
 }

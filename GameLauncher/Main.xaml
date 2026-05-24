@@ -319,7 +319,7 @@
                     <Button Content="Se connecter" Click="AccountLogin_Click"
                             Margin="0,14,0,0" Height="34" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                             FontSize="13" Background="#545ba8" Foreground="White" BorderBrush="Transparent"/>
-                    <Button Content="Créer un compte" Click="AccountRegister_Click"
+                    <Button Content="Créer un compte" Click="AccountRegister_Click" Cursor="Hand"
                             Margin="0,8,0,0" Height="34" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
                             FontSize="13" Background="#333a6e" Foreground="White" BorderBrush="Transparent"/>
                     <TextBlock x:Name="AccountStatusText" FontFamily="/CSILauncher;component/fonts/#Eurocentric"
@@ -329,10 +329,10 @@
                 <!-- Logged-in view -->
                 <StackPanel x:Name="AccountLoggedInPanel" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                        <Border Width="52" Height="52" CornerRadius="26"
-                                BorderBrush="#545ba8" BorderThickness="2" Margin="0,0,10,0">
+                        <Border Width="72" Height="72" CornerRadius="36"
+                                BorderBrush="#545ba8" BorderThickness="2" Margin="0,0,12,0">
                             <Border.Clip>
-                                <EllipseGeometry Center="26,26" RadiusX="26" RadiusY="26"/>
+                                <EllipseGeometry Center="36,36" RadiusX="36" RadiusY="36"/>
                             </Border.Clip>
                             <Image x:Name="AccountAvatarImage" Stretch="UniformToFill"
                                    RenderOptions.BitmapScalingMode="HighQuality"/>
@@ -340,41 +340,41 @@
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock x:Name="AccountWelcomeText"
                                        FontFamily="/CSILauncher;component/fonts/#Eurocentric"
-                                       FontSize="14" Foreground="White" TextWrapping="Wrap"/>
+                                       FontSize="18" Foreground="White" TextWrapping="Wrap"/>
                             <Border x:Name="AccountAchievementBadge" Visibility="Collapsed"
-                                    Background="#C07010" CornerRadius="8" Padding="7,2"
-                                    Margin="0,4,0,0" HorizontalAlignment="Left">
+                                    Background="#C07010" CornerRadius="10" Padding="10,3"
+                                    Margin="0,5,0,0" HorizontalAlignment="Left">
                                 <TextBlock x:Name="AccountAchievementText"
                                            FontFamily="/CSILauncher;component/fonts/#Eurocentric"
-                                           FontSize="10" Foreground="White"/>
+                                           FontSize="15" Foreground="White"/>
                             </Border>
                         </StackPanel>
                     </StackPanel>
-                    <Border Background="#22FFFFFF" CornerRadius="4" Padding="8,6" Margin="0,0,0,8"
+                    <Border Background="#22FFFFFF" CornerRadius="4" Padding="10,8" Margin="0,0,0,8"
                             x:Name="AccountMoneyPanel" Visibility="Collapsed">
                         <StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,5" VerticalAlignment="Center">
                                 <Image Source="/CSILauncher;component/images/money.png"
-                                       Width="16" Height="16" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                       Width="20" Height="20" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="AccountMoneyText"
                                            FontFamily="/CSILauncher;component/fonts/#Eurocentric"
-                                           FontSize="12" Foreground="White" VerticalAlignment="Center"/>
+                                           FontSize="14" Foreground="White" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Image Source="/CSILauncher;component/images/premium_money.png"
-                                       Width="16" Height="16" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                       Width="20" Height="20" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="AccountPremiumMoneyText"
                                            FontFamily="/CSILauncher;component/fonts/#Eurocentric"
-                                           FontSize="12" Foreground="#AADDFF" VerticalAlignment="Center"/>
+                                           FontSize="14" Foreground="#AADDFF" VerticalAlignment="Center"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
                     <Border x:Name="AccountDescriptionPanel"
-                            Background="#22FFFFFF" CornerRadius="4" Padding="8,6" Margin="0,0,0,8"
+                            Background="#22FFFFFF" CornerRadius="4" Padding="10,8" Margin="0,0,0,8"
                             Visibility="Collapsed">
                         <TextBlock x:Name="AccountDescriptionText"
                                    FontFamily="/CSILauncher;component/fonts/#Eurocentric"
-                                   FontSize="11" Foreground="#CCFFFFFF" TextWrapping="Wrap"/>
+                                   FontSize="13" Foreground="#CCFFFFFF" TextWrapping="Wrap"/>
                     </Border>
                     <TextBlock x:Name="AccountEmailText"
                                FontFamily="/CSILauncher;component/fonts/#Eurocentric"
