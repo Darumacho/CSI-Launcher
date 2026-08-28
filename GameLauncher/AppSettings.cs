@@ -174,6 +174,12 @@ namespace GameLauncher
             set => Set("player_premium_money", value?.ToString() ?? "");
         }
 
+        public static int? PlayerEloges
+        {
+            get => Values.TryGetValue("player_eloges", out string v) && int.TryParse(v, out int n) ? n : null;
+            set => Set("player_eloges", value?.ToString() ?? "");
+        }
+
         public static int? PlayerAchievementCount
         {
             get => Values.TryGetValue("player_achievement_count", out string v) && int.TryParse(v, out int n) ? n : null;
@@ -184,6 +190,12 @@ namespace GameLauncher
         {
             get => Values.TryGetValue("player_achievement_score", out string v) && int.TryParse(v, out int n) ? n : null;
             set => Set("player_achievement_score", value?.ToString() ?? "");
+        }
+
+        public static string PlayerSubscriptionTier
+        {
+            get => Values.TryGetValue("player_subscription_tier", out string v) && !string.IsNullOrEmpty(v) ? v : null;
+            set => Set("player_subscription_tier", value ?? "");
         }
 
         public static string SmtpEmail => ReadSmtpConfig("email");

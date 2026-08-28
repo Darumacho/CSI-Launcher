@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -11,7 +12,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace GameLauncher
 {
@@ -58,10 +62,39 @@ namespace GameLauncher
             CSIIPanel.Visibility   = name == "CSII"   ? Visibility.Visible : Visibility.Collapsed;
             CSRPanel.Visibility    = name == "CSR"    ? Visibility.Visible : Visibility.Collapsed;
             NarvalPanel.Visibility = name == "Narval" ? Visibility.Visible : Visibility.Collapsed;
+            CSIWOPanel.Visibility  = name == "CSIWO"  ? Visibility.Visible : Visibility.Collapsed;
+            CSI_PlayRow.Visibility    = name == "CSI"    ? Visibility.Visible : Visibility.Collapsed;
+            CSII_PlayRow.Visibility   = name == "CSII"   ? Visibility.Visible : Visibility.Collapsed;
+            CSR_PlayRow.Visibility    = name == "CSR"    ? Visibility.Visible : Visibility.Collapsed;
+            Narval_PlayRow.Visibility = name == "Narval" ? Visibility.Visible : Visibility.Collapsed;
             AccountPanelBorder.Visibility  = Visibility.Collapsed;
             SettingsPanelBorder.Visibility = Visibility.Collapsed;
             ContactPanelBorder.Visibility  = Visibility.Collapsed;
             SettingsColumn.Width = new GridLength(0);
+            AppLogoImage.Source = new BitmapImage(new Uri(
+                name == "CSIWO" ? "/images/OnlineLogo.png" : "/images/AppLogo.png", UriKind.Relative));
+            // The logo only reserves visual space on Home/CSIWO — the 4 installable games have their
+            // own full-bleed background art and never intended to show it (previously hidden only by
+            // z-order/opaque-image occlusion, which broke once the backgrounds moved to a shared layer).
+            AppLogoBorder.Visibility = (name == "Home" || name == "CSIWO") ? Visibility.Visible : Visibility.Collapsed;
+
+            string gameBackground = name switch
+            {
+                "CSI"    => "/images/CSI_Title.png",
+                "CSII"   => "/images/CSII_Title.png",
+                "CSR"    => "/images/CSR_Title.png",
+                "Narval" => "/images/Narval_Title.png",
+                _        => null
+            };
+            if (gameBackground != null)
+            {
+                GameBackgroundImage.Source = new BitmapImage(new Uri(gameBackground, UriKind.Relative));
+                GameBackgroundImage.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                GameBackgroundImage.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void SidebarHome_Click(object sender, RoutedEventArgs e) => ShowPanel("Home");
@@ -109,6 +142,8 @@ namespace GameLauncher
                 CSI_ExportButton.Visibility = csiVis;
                 CSI_ImportButton.Visibility = csiVis;
                 CSI_UninstallButton.Visibility = csiVis;
+                CSI_AchievementsButton.Visibility = csiVis;
+                RefreshCloudButtonsVisibility();
             }
         }
 
@@ -253,6 +288,8 @@ namespace GameLauncher
                 CSII_ExportButton.Visibility = csiiVis;
                 CSII_ImportButton.Visibility = csiiVis;
                 CSII_UninstallButton.Visibility = csiiVis;
+                CSII_AchievementsButton.Visibility = csiiVis;
+                RefreshCloudButtonsVisibility();
             }
         }
 
@@ -392,6 +429,8 @@ namespace GameLauncher
                 CSR_ExportButton.Visibility = csrVis;
                 CSR_ImportButton.Visibility = csrVis;
                 CSR_UninstallButton.Visibility = csrVis;
+                CSR_AchievementsButton.Visibility = csrVis;
+                RefreshCloudButtonsVisibility();
             }
         }
 
@@ -531,6 +570,8 @@ namespace GameLauncher
                 Narval_ExportButton.Visibility = narvalVis;
                 Narval_ImportButton.Visibility = narvalVis;
                 Narval_UninstallButton.Visibility = narvalVis;
+                Narval_AchievementsButton.Visibility = narvalVis;
+                RefreshCloudButtonsVisibility();
             }
         }
 
@@ -667,10 +708,10 @@ namespace GameLauncher
             try
             {
                 RandomIcon rand = null;
-                for (int attempt = 0; attempt < 10; attempt++)
+                for (int attempt = 0; attempt < 30; attempt++)
                 {
-                    var candidate = await ApiService.GetRandomIconAsync();
-                    if (candidate.Category is "weapon" or "armor" or "item" && candidate.GameId == gameId)
+                    var candidate = await ApiService.GetRandomIconAsync(gameId);
+                    if (candidate.Category is "weapon" or "armor" && candidate.GameId == gameId)
                     { rand = candidate; break; }
                 }
                 if (rand == null) return;
@@ -679,8 +720,7 @@ namespace GameLauncher
                 string categoryLabel = rand.Category switch
                 {
                     "weapon" => "Arme du jour",
-                    "armor"  => "Armure du jour",
-                    _        => "Objet du jour"
+                    _        => "Armure du jour"
                 };
                 GameConstants.GameNames.TryGetValue(rand.GameId, out string gameName);
                 titleBlock.Text    = rand.Name;
@@ -699,29 +739,31 @@ namespace GameLauncher
                     var statusesTask = ApiService.GetStatusesAsync();
                     var elementsTask = ApiService.GetElementsAsync();
 
+                    titleBlock.Foreground = Brushes.White;
                     switch (rand.Category)
                     {
                         case "weapon":
                             var weaponsTask = ApiService.GetWeaponsAsync();
                             await Task.WhenAll(statusesTask, elementsTask, weaponsTask);
                             var w = weaponsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
-                            if (w != null) PopulateWeapon(w, propsPanel,
-                                statusesTask.Result.ToDictionary(s => s.Id, s => s.Name),
-                                elementsTask.Result.ToDictionary(e => e.Id, e => e.Name));
+                            if (w != null)
+                            {
+                                PopulateWeapon(w, propsPanel,
+                                    statusesTask.Result.ToDictionary(s => s.Id, s => s.Name),
+                                    elementsTask.Result.ToDictionary(e => e.Id, e => e.Name));
+                                if (w.Rarity > 0) titleBlock.Foreground = RarityBrush(w.Rarity, w.GameId);
+                            }
                             break;
                         case "armor":
                             var armorsTask = ApiService.GetArmorsAsync();
                             await Task.WhenAll(elementsTask, armorsTask);
                             var a = armorsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
-                            if (a != null) PopulateArmor(a, propsPanel,
-                                elementsTask.Result.ToDictionary(e => e.Id, e => e.Name));
-                            break;
-                        case "item":
-                            var itemsTask = ApiService.GetItemsAsync();
-                            await Task.WhenAll(statusesTask, itemsTask);
-                            var i = itemsTask.Result.FirstOrDefault(x => x.Name == rand.Name);
-                            if (i != null) PopulateItem(i, propsPanel,
-                                statusesTask.Result.ToDictionary(s => s.Id, s => s.Name));
+                            if (a != null)
+                            {
+                                PopulateArmor(a, propsPanel,
+                                    elementsTask.Result.ToDictionary(e => e.Id, e => e.Name));
+                                if (a.Rarity > 0) titleBlock.Foreground = RarityBrush(a.Rarity, a.GameId);
+                            }
                             break;
                     }
                 }
@@ -736,8 +778,8 @@ namespace GameLauncher
         {
             AddDesc(w.Description, p);
             AddProp("Type", w.WeaponTypeName, p);
-            AddProp("Valeur", $"{w.Value} Dollawrs", p);
-            if (w.Rarity > 0) AddProp("Rareté", RarityLabel(w.Rarity), p);
+            AddProp("Valeur", $"{w.Value} {CurrencyName(w.GameId)}", p);
+            if (w.Rarity > 0) AddProp("Rareté", GameConstants.GetRarity(w.Rarity, w.GameId).Label, p);
             if (w.ElementId.HasValue)
                 AddProp("Élément", elementNames.TryGetValue(w.ElementId.Value, out var en) ? en : w.ElementId.Value.ToString(), p);
             if (w.BonusHit.HasValue) AddProp("Coups supp.", $"+{w.BonusHit}", p);
@@ -745,8 +787,8 @@ namespace GameLauncher
             if (w.NoSkills) AddProp("Compétences", "Aucune", p);
             if (w.GrantsSkills?.Count > 0) AddProp("Octroie", $"{w.GrantsSkills.Count} compétence(s)", p);
             AddStatusList("Inflige", w.StatusInflicted, statusNames, p);
-            AddStats(w.Stats, p);
-            AddMultipliers(w.Multipliers, p);
+            AddStats(w.Stats, p, w.GameId);
+            AddMultipliers(w.Multipliers, p, w.GameId);
         }
 
         private void PopulateArmor(Armor a, StackPanel p,
@@ -755,28 +797,13 @@ namespace GameLauncher
             AddDesc(a.Description, p);
             AddProp("Type", a.ArmorTypeName, p);
             //AddProp("Emplacement", a.Slot.ToString(), p);
-            AddProp("Valeur", $"{a.Value} Dollawrs", p);
-            if (a.Rarity > 0) AddProp("Rareté", RarityLabel(a.Rarity), p);
+            AddProp("Valeur", $"{a.Value} {CurrencyName(a.GameId)}", p);
+            if (a.Rarity > 0) AddProp("Rareté", GameConstants.GetRarity(a.Rarity, a.GameId).Label, p);
             if (a.CriticalRate.HasValue) AddProp("Critique", $"{a.CriticalRate}%", p);
             if (a.GrantsSkills?.Count > 0) AddProp("Octroie", $"{a.GrantsSkills.Count} compétence(s)", p);
             AddElementalResistances(a.ElementalResistance, elementNames, p);
-            AddStats(a.Stats, p);
-            AddMultipliers(a.Multipliers, p);
-        }
-
-        private void PopulateItem(Item i, StackPanel p,
-            Dictionary<int, string> statusNames)
-        {
-            AddDesc(i.Description, p);
-            AddProp("Valeur", $"{i.Value} Dollawrs", p);
-            if (i.IsKeyItem) AddProp("Objet clé", "Oui", p);
-            if (i.IsMaterial) AddProp("Matériau", "Oui", p);
-            if (i.FlatHeal.HasValue && i.FlatHeal != 0) AddProp("Soin PV", $"+{i.FlatHeal}", p);
-            if (i.FlatDamage.HasValue && i.FlatDamage != 0) AddProp("Dégâts", i.FlatDamage.ToString(), p);
-            if (!string.IsNullOrWhiteSpace(i.SpecialEffect)) AddProp("Effet", i.SpecialEffect, p);
-            AddStatusImmunity(i.StatusImmunity, statusNames, p);
-            if (i.GrantsSkills?.Count > 0) AddProp("Octroie", $"{i.GrantsSkills.Count} compétence(s)", p);
-            AddStats(i.Stats, p);
+            AddStats(a.Stats, p, a.GameId);
+            AddMultipliers(a.Multipliers, p, a.GameId);
         }
 
         private static void AddDesc(string desc, StackPanel p)
@@ -808,11 +835,18 @@ namespace GameLauncher
             });
         }
 
-        private static void AddStats(Stats s, StackPanel p)
+        private static SolidColorBrush RarityBrush(int rarity, int gameId)
+        {
+            var (_, r, g, b) = GameConstants.GetRarity(rarity, gameId);
+            return new SolidColorBrush(Color.FromRgb(r, g, b));
+        }
+
+        private static void AddStats(Stats s, StackPanel p, int gameId)
         {
             if (s == null) return;
+            string eg = gameId == 3 ? "Mana" : "EG";
             if (s.PvMax != 0)   AddProp("PV",  s.PvMax.ToString(),   p);
-            if (s.EgMax != 0)   AddProp("EG",  s.EgMax.ToString(),   p);
+            if (s.EgMax != 0)   AddProp(eg,    s.EgMax.ToString(),   p);
             if (s.Attaque != 0) AddProp("ATQ", s.Attaque.ToString(), p);
             if (s.Defense != 0) AddProp("DEF", s.Defense.ToString(), p);
             if (s.Arcane != 0)  AddProp("ARC", s.Arcane.ToString(),  p);
@@ -821,11 +855,12 @@ namespace GameLauncher
             if (s.Finesse != 0) AddProp("FIN", s.Finesse.ToString(), p);
         }
 
-        private static void AddMultipliers(Multipliers m, StackPanel p)
+        private static void AddMultipliers(Multipliers m, StackPanel p, int gameId)
         {
             if (m == null) return;
-            if (m.PvMax.HasValue)   AddProp("PV ×",  m.PvMax.Value.ToString("0.##"),   p);
-            if (m.EgMax.HasValue)   AddProp("EG ×",  m.EgMax.Value.ToString("0.##"),   p);
+            string eg = gameId == 3 ? "Mana" : "EG";
+            if (m.PvMax.HasValue)   AddProp("PV ×",    m.PvMax.Value.ToString("0.##"),   p);
+            if (m.EgMax.HasValue)   AddProp($"{eg} ×", m.EgMax.Value.ToString("0.##"),   p);
             if (m.Attaque.HasValue) AddProp("ATQ ×", m.Attaque.Value.ToString("0.##"), p);
             if (m.Defense.HasValue) AddProp("DEF ×", m.Defense.Value.ToString("0.##"), p);
             if (m.Arcane.HasValue)  AddProp("ARC ×", m.Arcane.Value.ToString("0.##"),  p);
@@ -846,17 +881,6 @@ namespace GameLauncher
             }
         }
 
-        private static void AddStatusImmunity(List<StatusEffect> effects,
-            Dictionary<int, string> statusNames, StackPanel p)
-        {
-            if (effects == null || effects.Count == 0) return;
-            foreach (var e in effects)
-            {
-                statusNames.TryGetValue(e.StatusId, out string name);
-                AddProp("Immunité", name ?? $"#{e.StatusId}", p);
-            }
-        }
-
         private static void AddElementalResistances(List<ElementalResistance> resistances,
             Dictionary<int, string> elementNames, StackPanel p)
         {
@@ -868,19 +892,8 @@ namespace GameLauncher
             }
         }
 
-        private static string RarityLabel(int rarity) => rarity switch
-        {
-            1 => "Ordinaire",
-            2 => "Peu commun",
-            3 => "Rare",
-            4 => "Épique",
-            5 => "Légendaire",
-            6 => "Unique",
-            7 => "Héroïque",
-            8 => "Séraphin",
-            9 => "Nacré",
-            _ => rarity.ToString()
-        };
+        private static string CurrencyName(int gameId) =>
+            GameConstants.CurrencyNames.TryGetValue(gameId, out string name) ? name : "Dollawrs";
 
         // ─── Launcher update ─────────────────────────────────────────────────────
 
@@ -1198,6 +1211,504 @@ namespace GameLauncher
         private void Narval_ImportSave_Click(object sender, RoutedEventArgs e)
             => ImportSaves("Narval Souls", _narvalRoot, _narvalExe);
 
+        private void CSI_Cloud_Click(object sender, RoutedEventArgs e)
+            => OpenCloudSaves("CSI Forever", "csi_forever", _csiRoot, _csiExe);
+        private void CSII_Cloud_Click(object sender, RoutedEventArgs e)
+            => OpenCloudSaves("CSII Forever", "csii_forever", _csiiRoot, _csiiExe);
+        private void CSR_Cloud_Click(object sender, RoutedEventArgs e)
+            => OpenCloudSaves("CSI Rogue", "csi_rogue", _csrRoot, _csrExe);
+        private void Narval_Cloud_Click(object sender, RoutedEventArgs e)
+            => OpenCloudSaves("Narval Souls", "narval_souls", _narvalRoot, _narvalExe);
+
+        private void OpenCloudSaves(string gameName, string gameSlug, string searchRoot, string gameExePath)
+        {
+            var window = new CloudSavesWindow(gameName, gameSlug, searchRoot, gameExePath) { Owner = this };
+            window.ShowDialog();
+        }
+
+        private void CSI_Achievements_Click(object sender, RoutedEventArgs e)
+            => OpenAchievements("CSI Forever", 0);
+        private void CSII_Achievements_Click(object sender, RoutedEventArgs e)
+            => OpenAchievements("CSII Forever", 1);
+        private void CSR_Achievements_Click(object sender, RoutedEventArgs e)
+            => OpenAchievements("CSI Rogue", 2);
+        private void Narval_Achievements_Click(object sender, RoutedEventArgs e)
+            => OpenAchievements("Narval Souls", 3);
+
+        private void OpenAchievements(string gameName, int gameId)
+        {
+            var window = new AchievementsWindow(gameName, gameId) { Owner = this };
+            window.ShowDialog();
+        }
+
+        private void SidebarCSIWO_Click(object sender, RoutedEventArgs e)
+        {
+            ShowPanel("CSIWO");
+            _ = LoadCSIWOPanel();
+        }
+
+        private void CharacterExpandToggle_Click(object sender, RoutedEventArgs e)
+        {
+            if (((FrameworkElement)sender).DataContext is CsiwoCharacterDisplay c)
+                c.IsExpanded = !c.IsExpanded;
+        }
+
+        private const double CSIWOBarMaxWidth = 130;
+        private List<ConversationPreview> _csiwoConversations = new();
+        private int? _csiwoSelectedConversationId;
+
+        private async Task LoadCSIWOPanel()
+        {
+            CSIWO_StatusText.Foreground = Brushes.White;
+            CSIWO_StatusText.Text = "Chargement...";
+            try
+            {
+                string token = AppSettings.PlayerToken;
+                var charactersTask    = ApiService.GetMyCharactersAsync(token);
+                var inventoryTask     = ApiService.GetMyInventoryAsync(token);
+                var notificationsTask = ApiService.GetMyNotificationsAsync(token);
+                var vaultTask         = ApiService.GetMyVaultAsync(token);
+                var bankTask          = ApiService.GetMyBankAsync(token);
+                var messagesTask      = ApiService.GetMyMessagesAsync(token);
+                await Task.WhenAll(charactersTask, inventoryTask, notificationsTask, vaultTask, bankTask, messagesTask);
+
+                var characters = charactersTask.Result.OrderBy(c => c.TeamSlot).ToList();
+                var detailTasks = characters.ToDictionary(c => c.Id, c => GetCharacterDetailSafe(token, c.Id));
+                await Task.WhenAll(detailTasks.Values);
+
+                CSIWO_CharactersList.ItemsSource = characters
+                    .Select(c => new CsiwoCharacterDisplay(c, detailTasks[c.Id].Result, CSIWOBarMaxWidth))
+                    .ToList();
+
+                var inventory = inventoryTask.Result;
+                CSIWO_InventoryList.ItemsSource = inventory.Items.Select(i => new CsiwoInventoryDisplay(i)).ToList();
+                CSIWO_InventoryHeaderText.Text = $"Inventaire — {inventory.UsedSlots} / {inventory.InventoryLimit}";
+
+                var vault = vaultTask.Result;
+                CSIWO_VaultList.ItemsSource = vault.Items.Select(i => new CsiwoInventoryDisplay(i)).ToList();
+                CSIWO_VaultHeaderText.Text = $"Coffre-fort — {vault.UsedSlots} / {vault.VaultLimit}";
+
+                var bank = bankTask.Result;
+                CSIWO_BankSummaryText.Text =
+                    $"{bank.Money} Dollawrs en poche · {bank.BankBalance} en banque\n" +
+                    $"Intérêt {bank.TotalInterestPct}% · Prochain versement : {bank.NextInterestDate}" +
+                    (bank.CanDeposit ? "" : " · Dépôt fermé");
+
+                _csiwoConversations = messagesTask.Result;
+                CSIWO_ConversationsList.ItemsSource = _csiwoConversations
+                    .Select(c => new CsiwoConversationDisplay(c))
+                    .ToList();
+
+                UpdateCSIWONotifications(notificationsTask.Result);
+
+                CSIWO_StatusText.Text = "";
+            }
+            catch (Exception ex)
+            {
+                CSIWO_StatusText.Foreground = Brushes.OrangeRed;
+                CSIWO_StatusText.Text = $"Erreur de chargement : {ex.Message}";
+            }
+        }
+
+        private void UpdateCSIWONotifications(NotificationsResponse response)
+        {
+            var notifications = response?.Notifications ?? new List<NotificationEntry>();
+            CSIWO_NotificationsList.ItemsSource = notifications.Select(n => new CsiwoNotificationDisplay(n)).ToList();
+
+            int unread = response?.Unread ?? 0;
+            CSIWO_NotificationBadge.Visibility = unread > 0 ? Visibility.Visible : Visibility.Collapsed;
+            CSIWO_NotificationBadgeText.Text = unread > 9 ? "9+" : unread.ToString();
+        }
+
+        private void CSIWONotifications_Click(object sender, RoutedEventArgs e)
+            => CSIWO_NotificationsPopup.IsOpen = !CSIWO_NotificationsPopup.IsOpen;
+
+        private async void CSIWOMarkAllRead_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string token = AppSettings.PlayerToken;
+                await ApiService.MarkNotificationsReadAsync(token);
+                UpdateCSIWONotifications(await ApiService.GetMyNotificationsAsync(token));
+            }
+            catch { }
+        }
+
+        private async void CSIWOConversation_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CSIWO_ConversationsList.SelectedItem is not CsiwoConversationDisplay selected) return;
+            _csiwoSelectedConversationId = selected.PlayerId;
+            await LoadCSIWOConversation(selected.PlayerId, selected.PlayerName);
+        }
+
+        private DispatcherTimer _csiwoUsernameSearchDebounce;
+
+        private void CSIWOUsernameSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _csiwoUsernameSearchDebounce?.Stop();
+
+            string query = CSIWO_NewMessageUsernameBox.Text.Trim();
+            if (query.Length < 2)
+            {
+                CSIWO_UsernameSuggestionsPopup.IsOpen = false;
+                return;
+            }
+
+            _csiwoUsernameSearchDebounce = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+            _csiwoUsernameSearchDebounce.Tick += async (s, args) =>
+            {
+                _csiwoUsernameSearchDebounce.Stop();
+                await RunCSIWOUsernameSearch(query);
+            };
+            _csiwoUsernameSearchDebounce.Start();
+        }
+
+        private async Task RunCSIWOUsernameSearch(string query)
+        {
+            try
+            {
+                var results = await ApiService.SearchPlayersAsync(AppSettings.PlayerToken, query);
+                // The user may have kept typing while this was in flight — drop stale results.
+                if (CSIWO_NewMessageUsernameBox.Text.Trim() != query) return;
+
+                CSIWO_UsernameSuggestionsList.ItemsSource = results;
+                CSIWO_UsernameSuggestionsPopup.IsOpen = results.Count > 0;
+            }
+            catch { }
+        }
+
+        private async void CSIWOUsernameSuggestion_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CSIWO_UsernameSuggestionsList.SelectedItem is not PlayerSearchResult selected) return;
+
+            CSIWO_UsernameSuggestionsPopup.IsOpen = false;
+            CSIWO_NewMessageUsernameBox.Text = "";
+            CSIWO_UsernameSuggestionsList.SelectedItem = null;
+
+            if (!_csiwoConversations.Any(c => c.PlayerId == selected.Id))
+            {
+                _csiwoConversations.Insert(0, new ConversationPreview
+                {
+                    PlayerId   = selected.Id,
+                    PlayerName = selected.Username,
+                    AvatarUrl  = selected.AvatarUrl
+                });
+            }
+
+            var items = _csiwoConversations.Select(c => new CsiwoConversationDisplay(c)).ToList();
+            CSIWO_ConversationsList.ItemsSource = items;
+            CSIWO_ConversationsList.SelectedItem = items.FirstOrDefault(c => c.PlayerId == selected.Id);
+
+            await Task.CompletedTask;
+        }
+
+        private async Task LoadCSIWOConversation(int otherId, string otherName)
+        {
+            CSIWO_ConversationTitleText.Text = otherName;
+            try
+            {
+                var history = await ApiService.GetConversationAsync(AppSettings.PlayerToken, otherId);
+                CSIWO_MessagesHistoryList.ItemsSource = history.Messages
+                    .OrderBy(m => m.CreatedAt)
+                    .Select(m => new CsiwoMessageDisplay(m))
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                CSIWO_StatusText.Foreground = Brushes.OrangeRed;
+                CSIWO_StatusText.Text = $"Erreur de chargement de la conversation : {ex.Message}";
+            }
+        }
+
+        private async void CSIWOSendMessage_Click(object sender, RoutedEventArgs e)
+        {
+            if (_csiwoSelectedConversationId is not int otherId) return;
+            string content = CSIWO_MessageInput.Text.Trim();
+            if (string.IsNullOrEmpty(content)) return;
+
+            try
+            {
+                await ApiService.SendMessageAsync(AppSettings.PlayerToken, otherId, content);
+                CSIWO_MessageInput.Text = "";
+                string otherName = _csiwoConversations.FirstOrDefault(c => c.PlayerId == otherId)?.PlayerName
+                    ?? CSIWO_ConversationTitleText.Text;
+                await LoadCSIWOConversation(otherId, otherName);
+            }
+            catch (Exception ex)
+            {
+                CSIWO_StatusText.Foreground = Brushes.OrangeRed;
+                CSIWO_StatusText.Text = $"Échec de l'envoi : {ex.Message}";
+            }
+        }
+
+        private static async Task<CharacterDetail> GetCharacterDetailSafe(string token, int id)
+        {
+            try { return await ApiService.GetMyCharacterDetailAsync(token, id); }
+            catch { return null; }
+        }
+
+        // Emplacements canoniques d'un personnage CSI World Online. L'API ne renvoie que
+        // l'équipement effectivement porté (pas la liste des slots disponibles) ; on complète
+        // donc avec ce gabarit fixe pour afficher aussi les emplacements vides.
+        private static readonly string[] CsiwoEquipmentSlotOrder = { "Arme", "Main gauche", "Tête", "Torse", "Relique", "Relique" };
+
+        private class CsiwoEquipmentSlotDisplay
+        {
+            public string IconUrl { get; }
+            public string Slot { get; }
+            public string Name { get; }
+            public bool IsEmpty { get; }
+            public double IconOpacity => IsEmpty ? 0.25 : 1.0;
+            public Brush NameColor => IsEmpty ? new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)) : Brushes.White;
+
+            public CsiwoEquipmentSlotDisplay(EquipmentEntry eq)
+            {
+                // L'équipement de CSI World Online utilise ses propres icônes (gameId 4),
+                // distinct des 4 jeux de l'encyclopédie.
+                IconUrl = $"https://csi-world.xyz/api/icon/4/{eq.IconId}";
+                Slot    = eq.Slot;
+                Name    = eq.Name;
+                IsEmpty = false;
+            }
+
+            private CsiwoEquipmentSlotDisplay(string slot)
+            {
+                Slot    = slot;
+                Name    = "Rien";
+                IsEmpty = true;
+            }
+
+            public static CsiwoEquipmentSlotDisplay Empty(string slot) => new(slot);
+
+            public static List<CsiwoEquipmentSlotDisplay> BuildFullLayout(List<EquipmentEntry> equipped)
+            {
+                var remaining = new List<EquipmentEntry>(equipped ?? new List<EquipmentEntry>());
+                var slots = new List<CsiwoEquipmentSlotDisplay>();
+                foreach (string slotName in CsiwoEquipmentSlotOrder)
+                {
+                    var match = remaining.FirstOrDefault(e => e.Slot == slotName);
+                    if (match != null)
+                    {
+                        remaining.Remove(match);
+                        slots.Add(new CsiwoEquipmentSlotDisplay(match));
+                    }
+                    else
+                    {
+                        slots.Add(Empty(slotName));
+                    }
+                }
+                // Équipement dans un slot imprévu (hors gabarit) : affiché quand même, à la suite.
+                slots.AddRange(remaining.Select(eq => new CsiwoEquipmentSlotDisplay(eq)));
+                return slots;
+            }
+        }
+
+        private class CsiwoCharacterDisplay : INotifyPropertyChanged
+        {
+            public string PortraitUrl { get; }
+            public string Name { get; }
+            public string ClassText { get; }
+            public string PvText { get; }
+            public string EgText { get; }
+            public string ExpText { get; }
+            public double PvBarWidth { get; }
+            public double EgBarWidth { get; }
+            public Visibility ActiveDotVisibility { get; }
+            public List<string> StatLines { get; }
+            public List<CsiwoEquipmentSlotDisplay> EquipmentSlots { get; }
+
+            private bool _isExpanded;
+            public bool IsExpanded
+            {
+                get => _isExpanded;
+                set { _isExpanded = value; PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsExpanded))); }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            public CsiwoCharacterDisplay(PlayerCharacter c, CharacterDetail detail, double maxBarWidth)
+            {
+                PortraitUrl = c.Model != null ? $"https://csi-world.xyz/uploads/models/{c.Model.Filename}" : null;
+                Name        = c.Name;
+                ClassText   = $"{c.ClassName} · Niveau {c.ClassLevel}";
+                PvText      = $"{c.CurrentPv} / {c.PvMax} PV";
+                EgText      = $"{c.CurrentEg} / {c.EgMax} EG";
+                ExpText     = $"{c.Experience} XP";
+                PvBarWidth  = c.PvMax > 0 ? Math.Clamp(maxBarWidth * c.CurrentPv / c.PvMax, 0, maxBarWidth) : 0;
+                EgBarWidth  = c.EgMax > 0 ? Math.Clamp(maxBarWidth * c.CurrentEg / c.EgMax, 0, maxBarWidth) : 0;
+                ActiveDotVisibility = detail?.IsActive == true ? Visibility.Visible : Visibility.Collapsed;
+
+                var s = detail?.Stats;
+                StatLines = s == null ? new List<string>() : new List<string>
+                {
+                    $"PV max : {s.PvMax}",
+                    $"EG max : {s.EgMax}",
+                    $"Attaque : {s.Attaque}",
+                    $"Défense : {s.Defense}",
+                    $"Arcane : {s.Arcane}",
+                    $"Sagesse : {s.Sagesse}",
+                    $"Vitesse : {s.Vitesse}",
+                    $"Finesse : {s.Finesse}",
+                };
+
+                EquipmentSlots = CsiwoEquipmentSlotDisplay.BuildFullLayout(detail?.Equipment);
+            }
+        }
+
+        private class CsiwoInventoryDisplay
+        {
+            private static readonly Dictionary<string, string> TypeLabels = new()
+            {
+                { "item",               "Objet" },
+                { "weapon",             "Arme" },
+                { "armor",              "Armure" },
+                { "weapon_instance",    "Instance d'arme" },
+                { "armor_instance",     "Instance d'armure" },
+                { "equipment_instance", "Équipement" },
+            };
+
+            public string IconUrl { get; }
+            public string Name { get; }
+            public string TypeLabel { get; }
+            public string QtyText { get; }
+
+            public CsiwoInventoryDisplay(InventoryItem i)
+            {
+                IconUrl   = !string.IsNullOrEmpty(i.IconUrl) ? "https://csi-world.xyz" + i.IconUrl : null;
+                Name      = i.Name;
+                TypeLabel = TypeLabels.TryGetValue(i.Type, out string label) ? label : i.Type;
+                QtyText   = $"×{i.Qty}";
+            }
+        }
+
+        private class CsiwoNotificationDisplay
+        {
+            public string Title { get; }
+            public string Body { get; }
+            public Visibility BodyVisibility { get; }
+            public string DateText { get; }
+            public Brush CardBackground { get; }
+
+            public CsiwoNotificationDisplay(NotificationEntry n)
+            {
+                Title          = n.Title;
+                Body           = n.Body;
+                BodyVisibility = string.IsNullOrWhiteSpace(n.Body) ? Visibility.Collapsed : Visibility.Visible;
+                DateText       = n.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+                CardBackground = n.IsRead
+                    ? new SolidColorBrush(Color.FromArgb(0x15, 0xFF, 0xFF, 0xFF))
+                    : new SolidColorBrush(Color.FromArgb(0x33, 0x54, 0x5b, 0xa8));
+            }
+        }
+
+        private class CsiwoConversationDisplay
+        {
+            public int PlayerId { get; }
+            public string PlayerName { get; }
+            public string AvatarUrl { get; }
+
+            public CsiwoConversationDisplay(ConversationPreview c)
+            {
+                PlayerId   = c.PlayerId;
+                PlayerName = c.PlayerName;
+                AvatarUrl  = c.AvatarUrl;
+            }
+        }
+
+        private class CsiwoMessageDisplay
+        {
+            public string Content { get; }
+            public string DateText { get; }
+            public Brush BubbleBackground { get; }
+            public Thickness BubbleMargin { get; }
+            public HorizontalAlignment BubbleAlignment { get; }
+
+            public CsiwoMessageDisplay(ChatMessage m)
+            {
+                Content          = m.Content;
+                DateText         = m.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm");
+                BubbleBackground = m.IsMine
+                    ? new SolidColorBrush(Color.FromRgb(0x54, 0x5b, 0xa8))
+                    : new SolidColorBrush(Color.FromRgb(0x33, 0x3a, 0x6e));
+                BubbleMargin     = m.IsMine ? new Thickness(40, 0, 0, 8) : new Thickness(0, 0, 40, 8);
+                BubbleAlignment  = m.IsMine ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+            }
+        }
+
+        internal static List<string> CollectSaveFiles(string searchRoot) =>
+            Directory.GetFiles(searchRoot, "*.rvdata2", SearchOption.AllDirectories)
+                .Where(f => Path.GetFileNameWithoutExtension(f).IndexOf("save", StringComparison.OrdinalIgnoreCase) >= 0)
+                .ToList();
+
+        internal static void CreateSaveZip(string searchRoot, List<string> saveFiles, string zipPath)
+        {
+            string gameIniPath = Directory.GetFiles(searchRoot, "Game.ini", SearchOption.AllDirectories).FirstOrDefault();
+
+            if (File.Exists(zipPath)) File.Delete(zipPath);
+
+            using var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create);
+            foreach (var file in saveFiles)
+                zip.CreateEntryFromFile(file, Path.GetRelativePath(searchRoot, file));
+            if (gameIniPath != null)
+                zip.CreateEntryFromFile(gameIniPath, Path.GetRelativePath(searchRoot, gameIniPath));
+        }
+
+        internal readonly struct SaveZipResult
+        {
+            public bool Success { get; init; }
+            public bool IsInformational { get; init; }
+            public string Message { get; init; }
+            public int Count { get; init; }
+        }
+
+        internal static SaveZipResult ExtractSaveZip(string zipPath, string searchRoot, string gameExePath, string gameName)
+        {
+            using var zip = ZipFile.OpenRead(zipPath);
+            var iniEntry = zip.Entries.FirstOrDefault(e =>
+                Path.GetFileName(e.FullName).Equals("Game.ini", StringComparison.OrdinalIgnoreCase));
+
+            if (iniEntry == null)
+                return new SaveZipResult { Success = false, Message = "Archive invalide : Game.ini introuvable." };
+
+            string archiveTitle = ReadGameIniTitle(iniEntry);
+            string installedIniPath = Path.Combine(Path.GetDirectoryName(gameExePath) ?? searchRoot, "Game.ini");
+
+            if (File.Exists(installedIniPath))
+            {
+                string installedTitle = ReadGameIniTitle(installedIniPath);
+                if (!string.Equals(archiveTitle, installedTitle, StringComparison.OrdinalIgnoreCase))
+                    return new SaveZipResult
+                    {
+                        Success = false,
+                        Message = $"Cette archive n'est pas compatible avec {gameName}.\n\n" +
+                                  $"Titre dans l'archive : {archiveTitle ?? "(inconnu)"}\n" +
+                                  $"Titre attendu : {installedTitle ?? "(inconnu)"}"
+                    };
+            }
+
+            var saveEntries = zip.Entries.Where(e =>
+                e.FullName.EndsWith(".rvdata2", StringComparison.OrdinalIgnoreCase) &&
+                Path.GetFileNameWithoutExtension(e.FullName)
+                    .IndexOf("save", StringComparison.OrdinalIgnoreCase) >= 0)
+                .ToList();
+
+            if (saveEntries.Count == 0)
+                return new SaveZipResult { Success = false, IsInformational = true, Message = "Aucune sauvegarde dans cette archive." };
+
+            string rootFull = Path.GetFullPath(searchRoot) + Path.DirectorySeparatorChar;
+            int count = 0;
+            foreach (var entry in saveEntries)
+            {
+                string dest = Path.GetFullPath(Path.Combine(searchRoot, entry.FullName));
+                if (!dest.StartsWith(rootFull)) continue; // zip-slip guard
+                Directory.CreateDirectory(Path.GetDirectoryName(dest));
+                entry.ExtractToFile(dest, overwrite: true);
+                count++;
+            }
+
+            return new SaveZipResult { Success = true, Count = count };
+        }
+
         private void ExportSaves(string gameName, string searchRoot)
         {
             if (string.IsNullOrEmpty(searchRoot) || !Directory.Exists(searchRoot))
@@ -1206,14 +1717,7 @@ namespace GameLauncher
                 return;
             }
 
-            var saveFiles = Directory.GetFiles(searchRoot, "*.rvdata2", SearchOption.AllDirectories)
-                .Where(f => Path.GetFileNameWithoutExtension(f).IndexOf("save", StringComparison.OrdinalIgnoreCase) >= 0)
-                .ToList();
-
-            string gameIniPath = Directory.GetFiles(searchRoot, "Game.ini", SearchOption.AllDirectories)
-                .FirstOrDefault();
-            bool hasIni = gameIniPath != null;
-
+            var saveFiles = CollectSaveFiles(searchRoot);
             if (saveFiles.Count == 0)
             {
                 MessageBox.Show("Aucune sauvegarde trouvée.", "Export", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1233,22 +1737,7 @@ namespace GameLauncher
 
             try
             {
-                if (File.Exists(dlg.FileName)) File.Delete(dlg.FileName);
-
-                using (var zip = ZipFile.Open(dlg.FileName, ZipArchiveMode.Create))
-                {
-                    foreach (var file in saveFiles)
-                    {
-                        string entry = Path.GetRelativePath(searchRoot, file);
-                        zip.CreateEntryFromFile(file, entry);
-                    }
-                    if (hasIni)
-                    {
-                        string iniEntry = Path.GetRelativePath(searchRoot, gameIniPath);
-                        zip.CreateEntryFromFile(gameIniPath, iniEntry);
-                    }
-                }
-
+                CreateSaveZip(searchRoot, saveFiles, dlg.FileName);
                 MessageBox.Show(
                     $"{saveFiles.Count} sauvegarde(s) exportée(s) avec succès.",
                     "Export réussi", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1279,63 +1768,16 @@ namespace GameLauncher
 
             try
             {
-                using (var zip = ZipFile.OpenRead(dlg.FileName))
+                var result = ExtractSaveZip(dlg.FileName, searchRoot, gameExePath, gameName);
+                if (!result.Success)
                 {
-                    var iniEntry = zip.Entries.FirstOrDefault(e =>
-                        Path.GetFileName(e.FullName).Equals("Game.ini", StringComparison.OrdinalIgnoreCase));
-
-                    if (iniEntry == null)
-                    {
-                        MessageBox.Show("Archive invalide : Game.ini introuvable.", "Import impossible",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-
-                    string archiveTitle = ReadGameIniTitle(iniEntry);
-                    string installedIniPath = Path.Combine(
-                        Path.GetDirectoryName(gameExePath) ?? searchRoot, "Game.ini");
-
-                    if (File.Exists(installedIniPath))
-                    {
-                        string installedTitle = ReadGameIniTitle(installedIniPath);
-                        if (!string.Equals(archiveTitle, installedTitle, StringComparison.OrdinalIgnoreCase))
-                        {
-                            MessageBox.Show(
-                                $"Cette archive n'est pas compatible avec {gameName}.\n\n" +
-                                $"Titre dans l'archive : {archiveTitle ?? "(inconnu)"}\n" +
-                                $"Titre attendu : {installedTitle ?? "(inconnu)"}",
-                                "Import impossible", MessageBoxButton.OK, MessageBoxImage.Error);
-                            return;
-                        }
-                    }
-
-                    var saveEntries = zip.Entries.Where(e =>
-                        e.FullName.EndsWith(".rvdata2", StringComparison.OrdinalIgnoreCase) &&
-                        Path.GetFileNameWithoutExtension(e.FullName)
-                            .IndexOf("save", StringComparison.OrdinalIgnoreCase) >= 0)
-                        .ToList();
-
-                    if (saveEntries.Count == 0)
-                    {
-                        MessageBox.Show("Aucune sauvegarde dans cette archive.", "Import",
-                            MessageBoxButton.OK, MessageBoxImage.Information);
-                        return;
-                    }
-
-                    string rootFull = Path.GetFullPath(searchRoot) + Path.DirectorySeparatorChar;
-                    int count = 0;
-                    foreach (var entry in saveEntries)
-                    {
-                        string dest = Path.GetFullPath(Path.Combine(searchRoot, entry.FullName));
-                        if (!dest.StartsWith(rootFull)) continue; // zip-slip guard
-                        Directory.CreateDirectory(Path.GetDirectoryName(dest));
-                        entry.ExtractToFile(dest, overwrite: true);
-                        count++;
-                    }
-
-                    MessageBox.Show($"{count} sauvegarde(s) importée(s) avec succès.", "Import réussi",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(result.Message, result.IsInformational ? "Import" : "Import impossible",
+                        MessageBoxButton.OK, result.IsInformational ? MessageBoxImage.Information : MessageBoxImage.Error);
+                    return;
                 }
+
+                MessageBox.Show($"{result.Count} sauvegarde(s) importée(s) avec succès.", "Import réussi",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
@@ -1401,9 +1843,12 @@ namespace GameLauncher
             bool loggedIn = !string.IsNullOrEmpty(AppSettings.PlayerToken);
             AccountLoggedOutPanel.Visibility = loggedIn ? Visibility.Collapsed : Visibility.Visible;
             AccountLoggedInPanel.Visibility  = loggedIn ? Visibility.Visible   : Visibility.Collapsed;
+            CSIWOSidebarButton.Visibility    = loggedIn ? Visibility.Visible   : Visibility.Collapsed;
+            RefreshCloudButtonsVisibility();
             if (!loggedIn) return;
 
             AccountWelcomeText.Text = AppSettings.PlayerUsername;
+            ApplySubscriptionTierStyle(AppSettings.PlayerSubscriptionTier);
 
             int? achCount = AppSettings.PlayerAchievementCount;
             int? achScore = AppSettings.PlayerAchievementScore;
@@ -1432,6 +1877,11 @@ namespace GameLauncher
                 AccountPremiumMoneyText.Text = $"{AppSettings.PlayerPremiumMoney ?? 0} Crédits MasterMoney";
             }
 
+            int? eloges = AppSettings.PlayerEloges;
+            AccountElogesPanel.Visibility = eloges.HasValue ? Visibility.Visible : Visibility.Collapsed;
+            if (eloges.HasValue)
+                AccountElogesText.Text = $"{eloges} Éloges";
+
             string desc = AppSettings.PlayerDescription;
             AccountDescriptionPanel.Visibility = !string.IsNullOrEmpty(desc) ? Visibility.Visible : Visibility.Collapsed;
             AccountDescriptionText.Text = desc ?? "";
@@ -1441,12 +1891,85 @@ namespace GameLauncher
             AccountEmailText.Text = email ?? "";*/
         }
 
+        private void RefreshCloudButtonsVisibility()
+        {
+            bool allowed = !string.IsNullOrEmpty(AppSettings.PlayerToken) && !string.IsNullOrEmpty(AppSettings.PlayerSubscriptionTier);
+
+            bool CanShow(LauncherStatus status) => allowed && (status == LauncherStatus.ready || status == LauncherStatus.failed);
+
+            CSI_CloudButton.Visibility    = CanShow(_csiStatus)    ? Visibility.Visible : Visibility.Collapsed;
+            CSII_CloudButton.Visibility   = CanShow(_csiiStatus)   ? Visibility.Visible : Visibility.Collapsed;
+            CSR_CloudButton.Visibility    = CanShow(_csrStatus)    ? Visibility.Visible : Visibility.Collapsed;
+            Narval_CloudButton.Visibility = CanShow(_narvalStatus) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void ApplySubscriptionTierStyle(string tier)
+        {
+            if (string.IsNullOrEmpty(tier) || !GameConstants.SubscriptionTierColors.TryGetValue(tier, out var color))
+            {
+                AccountWelcomeText.Foreground = Brushes.White;
+                AccountWelcomeText.Effect = null;
+                AccountTierBadgeImage.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            if (tier.Equals("platine", StringComparison.OrdinalIgnoreCase))
+            {
+                var stops = GameConstants.PlatineGradient;
+                var gradient = new LinearGradientBrush { StartPoint = new Point(0, 0), EndPoint = new Point(0, 1) };
+                gradient.GradientStops.Add(new GradientStop(Color.FromRgb(stops[0].R, stops[0].G, stops[0].B), 0.0));
+                gradient.GradientStops.Add(new GradientStop(Color.FromRgb(stops[1].R, stops[1].G, stops[1].B), 0.55));
+                gradient.GradientStops.Add(new GradientStop(Color.FromRgb(stops[2].R, stops[2].G, stops[2].B), 1.0));
+
+                var breathe = new TranslateTransform();
+                gradient.RelativeTransform = breathe;
+                breathe.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation
+                {
+                    From            = -0.5,
+                    To              = 0.5,
+                    Duration        = new Duration(TimeSpan.FromSeconds(6)),
+                    AutoReverse     = true,
+                    RepeatBehavior  = RepeatBehavior.Forever,
+                    EasingFunction  = new SineEase { EasingMode = EasingMode.EaseInOut }
+                });
+
+                AccountWelcomeText.Foreground = gradient;
+                AccountWelcomeText.Effect = null;
+            }
+            else
+            {
+                var tierColor = Color.FromRgb(color.R, color.G, color.B);
+                AccountWelcomeText.Foreground = new SolidColorBrush(tierColor);
+                AccountWelcomeText.Effect = new DropShadowEffect
+                {
+                    Color       = tierColor,
+                    BlurRadius  = 8,
+                    ShadowDepth = 0,
+                    Opacity     = 0.7
+                };
+            }
+
+            if (GameConstants.SubscriptionTierBadges.TryGetValue(tier, out string badgePath))
+            {
+                try
+                {
+                    AccountTierBadgeImage.Source = new BitmapImage(new Uri(badgePath, UriKind.Relative));
+                    AccountTierBadgeImage.Visibility = Visibility.Visible;
+                }
+                catch { AccountTierBadgeImage.Visibility = Visibility.Collapsed; }
+            }
+            else
+            {
+                AccountTierBadgeImage.Visibility = Visibility.Collapsed;
+            }
+        }
+
         private async Task FetchAndStoreProfile()
         {
             try
             {
-                var meTask     = ApiService.GetMyProfileAsync(AppSettings.PlayerToken);
-                var pubTask    = ApiService.GetPlayerAsync(AppSettings.PlayerUsername);
+                var meTask  = ApiService.GetMyProfileAsync(AppSettings.PlayerToken);
+                var pubTask = ApiService.GetPlayerAsync(AppSettings.PlayerUsername);
                 await Task.WhenAll(meTask, pubTask);
 
                 var me  = meTask.Result;
@@ -1456,6 +1979,7 @@ namespace GameLauncher
                 AppSettings.PlayerEmail        = me.Email;
                 AppSettings.PlayerDescription  = me.Description;
                 AppSettings.PlayerMoney        = me.Money;
+                AppSettings.PlayerEloges       = me.Eloges;
                 AppSettings.PlayerPremiumMoney = me.PremiumMoney;
 
                 var achievements = pub.Achievements;
@@ -1465,8 +1989,77 @@ namespace GameLauncher
                 RefreshAccountUI();
                 if (!string.IsNullOrEmpty(me.Email))
                     ContactEmailBox.Text = me.Email;
+
+                try
+                {
+                    var badges = await ApiService.GetMyBadgesAsync(AppSettings.PlayerToken);
+                    PopulateBadges(badges);
+                }
+                catch { }
+
+                try
+                {
+                    var subscription = await ApiService.GetMySubscriptionAsync(AppSettings.PlayerToken);
+                    AppSettings.PlayerSubscriptionTier = subscription.Active ? subscription.Tier : null;
+                    RefreshAccountUI();
+                }
+                catch { }
             }
             catch { }
+        }
+
+        private void PopulateBadges(List<Badge> badges)
+        {
+            AccountBadgesWrap.Children.Clear();
+            if (badges == null || badges.Count == 0)
+            {
+                AccountBadgesPanel.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            foreach (var badge in badges)
+            {
+                var img = new Image { Width = 22, Height = 22, Stretch = Stretch.Uniform };
+                RenderOptions.SetBitmapScalingMode(img, BitmapScalingMode.HighQuality);
+                try { img.Source = new BitmapImage(new Uri(badge.Icon)); } catch { }
+
+                var label = new TextBlock
+                {
+                    Text              = badge.DisplayName,
+                    Foreground        = Brushes.White,
+                    FontFamily        = new FontFamily("/CSILauncher;component/fonts/#Eurocentric"),
+                    FontSize          = 10,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    TextWrapping      = TextWrapping.NoWrap,
+                    TextTrimming      = TextTrimming.CharacterEllipsis,
+                    Margin            = new Thickness(5, 0, 0, 0)
+                };
+
+                var row = new StackPanel { Orientation = Orientation.Horizontal };
+                row.Children.Add(img);
+                row.Children.Add(label);
+
+                string tooltipText = string.IsNullOrEmpty(badge.Description)
+                    ? badge.DisplayName
+                    : $"{badge.DisplayName}\n{badge.Description}";
+
+                var pill = new Border
+                {
+                    Background      = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1a1a2e")),
+                    BorderBrush     = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C07010")),
+                    BorderThickness = new Thickness(1.5),
+                    CornerRadius    = new CornerRadius(5),
+                    Padding         = new Thickness(5, 3, 6, 3),
+                    Margin          = new Thickness(0, 0, 5, 5),
+                    MaxWidth        = 135,
+                    ToolTip         = tooltipText,
+                    Child           = row
+                };
+
+                AccountBadgesWrap.Children.Add(pill);
+            }
+
+            AccountBadgesPanel.Visibility = Visibility.Visible;
         }
 
         private async void AccountLogin_Click(object sender, RoutedEventArgs e)
@@ -1512,9 +2105,11 @@ namespace GameLauncher
             AppSettings.PlayerEmail        = null;
             AppSettings.PlayerDescription  = null;
             AppSettings.PlayerMoney             = null;
+            AppSettings.PlayerEloges            = null;
             AppSettings.PlayerPremiumMoney      = null;
             AppSettings.PlayerAchievementCount  = null;
             AppSettings.PlayerAchievementScore  = null;
+            AppSettings.PlayerSubscriptionTier  = null;
             DeleteTokenFiles();
             RefreshAccountUI();
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace GameLauncher
@@ -118,7 +119,7 @@ namespace GameLauncher
         public int? FlatDamage { get; set; }
         public int? FlatHeal { get; set; }
         public string SpecialEffect { get; set; }
-        public List<StatusEffect> StatusImmunity { get; set; }
+        public List<int> StatusImmunity { get; set; }
         public List<int> GrantsSkills { get; set; }
         public Stats Stats { get; set; }
     }
@@ -134,7 +135,7 @@ namespace GameLauncher
         public int Icon { get; set; }
         public int Value { get; set; }
         public int Rarity { get; set; }
-        public int WeaponTypeId { get; set; }
+        public int? WeaponTypeId { get; set; }
         public string WeaponTypeName { get; set; }
         public bool IsTwoHanded { get; set; }
         public string Formula { get; set; }
@@ -159,7 +160,7 @@ namespace GameLauncher
         public int Icon { get; set; }
         public int Value { get; set; }
         public int Rarity { get; set; }
-        public int ArmorTypeId { get; set; }
+        public int? ArmorTypeId { get; set; }
         public string ArmorTypeName { get; set; }
         public int Slot { get; set; }
         public List<int> GrantsSkills { get; set; }
@@ -208,7 +209,7 @@ namespace GameLauncher
         public List<ElementalResistance> ElementalResistance { get; set; }
         public double? PhysicalTaken { get; set; }
         public double? MagicalTaken { get; set; }
-        public List<StatusEffect> StatusImmunity { get; set; }
+        public List<int> StatusImmunity { get; set; }
         public Stats Stats { get; set; }
     }
 
@@ -251,7 +252,7 @@ namespace GameLauncher
         public string SpecialEffect { get; set; }
         public Multipliers Multipliers { get; set; }
         public List<ElementalResistance> ElementalResistance { get; set; }
-        public List<StatusEffect> StatusImmunity { get; set; }
+        public List<int> StatusImmunity { get; set; }
     }
 
     // --- Player ---
@@ -287,6 +288,15 @@ namespace GameLauncher
         public bool AlreadyUnlocked { get; set; }
     }
 
+    class Badge
+    {
+        public string Slug { get; set; }
+        public string DisplayName { get; set; }
+        public string Description { get; set; }
+        public string Icon { get; set; }
+        public DateTimeOffset EarnedAt { get; set; }
+    }
+
     class PlayerResponse
     {
         public string Username { get; set; }
@@ -303,15 +313,227 @@ namespace GameLauncher
         public DateTimeOffset UnlockedAt { get; set; }
     }
 
+    class AchievementCatalogEntry
+    {
+        public int Id { get; set; }
+        public int GameId { get; set; }
+        public int InternalId { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public int PointsValue { get; set; }
+        public string IconUrl { get; set; }
+    }
+
     class PlayerProfile
     {
+        public int Id { get; set; }
         public string Username { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
         public string Description { get; set; }
         public string AvatarUrl { get; set; }
         public string Email { get; set; }
         public int? Money { get; set; }
+        public int? Eloges { get; set; }
         public int? PremiumMoney { get; set; }
         public List<Achievement> Achievements { get; set; }
+    }
+
+    class SubscriptionInfo
+    {
+        public bool Active { get; set; }
+        public string Status { get; set; }
+        public string Tier { get; set; }
+        public string Color { get; set; }
+    }
+
+    class CloudSave
+    {
+        public int Id { get; set; }
+        public string GameSlug { get; set; }
+        public string GameLabel { get; set; }
+        public string FileName { get; set; }
+        public string Label { get; set; }
+        public long SizeBytes { get; set; }
+        public string Sha256 { get; set; }
+        public DateTimeOffset UploadedAt { get; set; }
+    }
+
+    class CloudSavesResponse
+    {
+        public string Tier { get; set; }
+        public int Quota { get; set; }
+        public int Used { get; set; }
+        public Dictionary<string, string> KnownGames { get; set; }
+        public List<CloudSave> Saves { get; set; }
+    }
+
+    class CharacterModelRef
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Filename { get; set; }
+        public string Gender { get; set; }
+    }
+
+    class PlayerCharacter
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int TeamSlot { get; set; }
+        public string ClassName { get; set; }
+        public int ClassLevel { get; set; }
+        public int Experience { get; set; }
+        public int CurrentPv { get; set; }
+        public int PvMax { get; set; }
+        public int CurrentEg { get; set; }
+        public int EgMax { get; set; }
+        public CharacterModelRef Model { get; set; }
+    }
+
+    class EquipmentEntry
+    {
+        public string Slot { get; set; }
+        public string Type { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int IconId { get; set; }
+    }
+
+    // Le serveur renvoie `equipment` comme un tableau JSON quand tous les slots
+    // sont occupés, mais comme un objet (clés numériques en string) dès qu'un
+    // slot est vide (PHP : array associatif non-séquentiel -> objet JSON).
+    class EquipmentListConverter : JsonConverter<List<EquipmentEntry>>
+    {
+        public override List<EquipmentEntry> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            using var doc = JsonDocument.ParseValue(ref reader);
+            var root = doc.RootElement;
+            var result = new List<EquipmentEntry>();
+
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var element in root.EnumerateArray())
+                    result.Add(element.Deserialize<EquipmentEntry>(options));
+            }
+            else if (root.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in root.EnumerateObject())
+                    result.Add(property.Value.Deserialize<EquipmentEntry>(options));
+            }
+
+            return result;
+        }
+
+        public override void Write(Utf8JsonWriter writer, List<EquipmentEntry> value, JsonSerializerOptions options)
+            => JsonSerializer.Serialize(writer, value, options);
+    }
+
+    class CharacterDetail
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public bool IsActive { get; set; }
+        public string ClassName { get; set; }
+        public int ClassLevel { get; set; }
+        public int Experience { get; set; }
+        public int CurrentPv { get; set; }
+        public int PvMax { get; set; }
+        public int CurrentEg { get; set; }
+        public int EgMax { get; set; }
+        public CharacterModelRef Model { get; set; }
+        public Stats Stats { get; set; }
+        [JsonConverter(typeof(EquipmentListConverter))]
+        public List<EquipmentEntry> Equipment { get; set; }
+    }
+
+    class InventoryItem
+    {
+        public string Type { get; set; }
+        public int Id { get; set; }
+        public int Qty { get; set; }
+        public string Name { get; set; }
+        public string IconUrl { get; set; }
+        public int? Slot { get; set; }
+    }
+
+    class InventoryResponse
+    {
+        public int InventoryLimit { get; set; }
+        public int UsedSlots { get; set; }
+        public List<InventoryItem> Items { get; set; }
+    }
+
+    class NotificationEntry
+    {
+        public int Id { get; set; }
+        public string Type { get; set; }
+        public string Title { get; set; }
+        public string Body { get; set; }
+        public bool IsRead { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+    }
+
+    class NotificationsResponse
+    {
+        public int Unread { get; set; }
+        public List<NotificationEntry> Notifications { get; set; }
+    }
+
+    class ConversationPreview
+    {
+        public int PlayerId { get; set; }
+        public string PlayerName { get; set; }
+        public string Tier { get; set; }
+        public string AvatarUrl { get; set; }
+        public int LastId { get; set; }
+    }
+
+    class PlayerSearchResult
+    {
+        public int Id { get; set; }
+        public string Username { get; set; }
+        public string AvatarUrl { get; set; }
+    }
+
+    class ChatMessage
+    {
+        public int Id { get; set; }
+        public int PlayerId { get; set; }
+        public bool IsMine { get; set; }
+        public string Content { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+    }
+
+    class ConversationHistory
+    {
+        public int OtherId { get; set; }
+        public string OtherName { get; set; }
+        public List<ChatMessage> Messages { get; set; }
+    }
+
+    class SendMessageResponse
+    {
+        public int Id { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+    }
+
+    class VaultResponse
+    {
+        public int VaultLimit { get; set; }
+        public int UsedSlots { get; set; }
+        public List<InventoryItem> Items { get; set; }
+    }
+
+    class BankResponse
+    {
+        public int Money { get; set; }
+        public int BankBalance { get; set; }
+        public bool CanDeposit { get; set; }
+        public int WithdrawalTaxPct { get; set; }
+        public int BaseInterestPct { get; set; }
+        public int BonusInterestPct { get; set; }
+        public int TotalInterestPct { get; set; }
+        public string NextInterestDate { get; set; }
+        public DateTimeOffset? LastInterestAt { get; set; }
     }
 }

@@ -32,6 +32,15 @@
     <None Remove="images\Icon.ico" />
     <None Remove="images\money.png" />
     <None Remove="images\premium_money.png" />
+    <None Remove="images\CSIWO\premium_tier_bronze.png" />
+    <None Remove="images\CSIWO\premium_tier_argent.png" />
+    <None Remove="images\CSIWO\premium_tier_gold.png" />
+    <None Remove="images\CSIWO\premium_tier_platine.png" />
+    <None Remove="images\CSIWO\eloge_money.png" />
+    <None Remove="images\CSIWO_Button.png" />
+    <None Remove="images\OnlineLogo.png" />
+    <None Remove="images\BackgroundAurora.jpg" />
+    <None Remove="images\BackgroundDarkness.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +65,15 @@
     <Resource Include="images\Icon.ico" />
     <Resource Include="images\money.png" />
     <Resource Include="images\premium_money.png" />
+    <Resource Include="images\CSIWO\premium_tier_bronze.png" />
+    <Resource Include="images\CSIWO\premium_tier_argent.png" />
+    <Resource Include="images\CSIWO\premium_tier_gold.png" />
+    <Resource Include="images\CSIWO\premium_tier_platine.png" />
+    <Resource Include="images\CSIWO\eloge_money.png" />
+    <Resource Include="images\CSIWO_Button.png" />
+    <Resource Include="images\OnlineLogo.png" />
+    <Resource Include="images\BackgroundAurora.jpg" />
+    <Resource Include="images\BackgroundDarkness.png" />
   </ItemGroup>
 
   <ItemGroup>

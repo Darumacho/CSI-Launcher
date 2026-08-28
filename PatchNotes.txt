@@ -1,10 +1,9 @@
-24.05.2026
+29.08.2026
 
-Launcher - version 1.6 :
-	- Intégration API complète
-	- Affichage du profil joueur dans le menu latéral
-	- renouvellement automatique du token lors d'un changement de compte
-
-- La dernière version de Narval Souls est désormais disponible depuis le launcher !
-- L'encyclopédie CSI World est toujours en cours d'alimentation et d'améliorations
+Launcher - version 1.7 :
+	- Intégration du service cloud pour tous les jeux
+	- Fusion de l'écosystème CSI World !
+- CSI World évolue ! N'hésitez pas à le visiter !
 - CSI World Online en cours de développement
+
+- La refonte de CSI Rogue est en cours

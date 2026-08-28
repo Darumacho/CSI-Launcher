@@ -1,0 +1,55 @@
+<Window x:Class="GameLauncher.AchievementsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Succès" Height="520" Width="560"
+        Background="#FF1a1a2e" WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock x:Name="TitleText" FontFamily="Optimus" FontSize="20" Foreground="White"/>
+            <TextBlock x:Name="SummaryText" FontFamily="Optimus" FontSize="12" Foreground="#AAFFFFFF" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <ListBox x:Name="AchievementsList" Grid.Row="1" Background="Transparent" BorderThickness="0"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="{Binding CardBackground}" BorderBrush="{Binding CardBorder}" BorderThickness="1"
+                            CornerRadius="4" Padding="10,8" Margin="0,0,0,6">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Image Grid.Column="0" Source="{Binding IconUrl}" Width="32" Height="32"
+                                   Margin="0,0,10,0" VerticalAlignment="Top" Opacity="{Binding IconOpacity}"
+                                   RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" FontFamily="Optimus" FontSize="13"
+                                           Foreground="{Binding TitleColor}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Description}" FontFamily="Optimus" FontSize="11"
+                                           Foreground="#99FFFFFF" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding StatusText}" FontFamily="Optimus" FontSize="10"
+                                           Foreground="{Binding StatusColor}" Margin="0,3,0,0"/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="{Binding PointsText}" FontFamily="Optimus" FontSize="13"
+                                       Foreground="#FFD98A" VerticalAlignment="Top"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="2" Margin="0,10,0,0">
+            <TextBlock x:Name="StatusText" FontFamily="Optimus" FontSize="12" TextWrapping="Wrap" Foreground="White" Margin="0,0,0,8"/>
+            <Button Content="Fermer" Click="CloseButton_Click" Height="30" Width="100" HorizontalAlignment="Right"
+                    FontFamily="Optimus" FontSize="12" Background="#333a6e" Foreground="White" BorderBrush="Transparent"/>
+        </StackPanel>
+    </Grid>
+</Window>
